@@ -1,0 +1,108 @@
+# App: Tagebuch-App für Android 15+
+
+## 1. Grundidee
+- Entwicklung einer privatsphäreorientierten Tagebuch-/Journal-App für Android 15 und höhere Versionen.
+- Fokus: Kalender, verschlüsselte Datenspeicherung, WebDAV-Synchronisation.
+- App soll später als **privates Repository auf GitHub** gehostet werden (kein öffentlicher Quellcode).
+
+## 2. Zielplattform
+- Mindestens Android 15 (entsprechende API‑Level).
+- Geeignet für Android 15 und neuere Versionen.
+- Optional: gute Kompatibilität zu älteren Android‑Versionen wird nicht gefordert.
+
+## 3. Hauptbildschirm: Kalender
+- Zeige einen Monatskalender (Gitterform).
+- Klick auf einen Tag → öffnet ein Popup (~90 % der Bildschirmhöhe).
+- Wenn für einen Tag bereits Einträge bestehen:
+  - Zeige einen kleinen Hinweis auf dem Kalender (z.B. Punkte/Icon/Textvorschau).
+- Mehrere „Seiten“ pro Tag möglich (z.B. als Tabs oder Swipe-Bereiche im Popup).
+
+## 4. Eintrags-Editor im Popup
+- Im Popup:
+  - Texteingabe per Tastatur (möglichst mit einfacher Formatierung).
+  - Möglichkeit, Bilder und Emojis einzufügen.
+  - Bilder/Emojis können:
+    - vergrößert/verkleinert,
+    - gedreht und
+    - positioniert werden.
+- Optional: einfache Textformatierung (fett, kursiv, etc.).
+
+## 5. Popup-UI
+- Popup sollte etwa 90 % der Bildschirmhöhe einnehmen.
+- Oben ein „X“-Button, um das Popup zu schließen.
+- Optional: Zurück-/Speichern-Button im oberen Bereich.
+
+## 6. Authentifizierung (PIN / Fingerprint)
+- Beim Start der App:
+  - Abfrage eines PIN-Codes oder Fingerabdrucks.
+  - Nutzer kann in den Einstellungen wählen: PIN, Fingerprint oder „keine Authentifizierung“.
+- Verschlüsselte lokale Speicherung aller Tagebuchdaten.
+
+## 7. Einstellungs-Bildschirm
+- Erstelle einen „Einstellungen“-Bildschirm.
+- Konfigurierbar:
+  - PIN festlegen/ändern/entfernen.
+  - Fingerprint-Entsperrung aktivieren/deaktivieren.
+  - WebDAV-Sync:
+    - WebDAV-Server-URL.
+    - Benutzername.
+    - Passwort (sicher gespeichert, z.B. via Android Keystore).
+    - Verschlüsselungspasswort/Passphrase für die Daten auf dem Server.
+  - Option: Sync ein/aus, manuell oder automatisch.
+  - Optional: Button „Jetzt synchronisieren“.
+- Thema:
+  - Unterstützung für **Light‑Thema** und **Dark‑Thema**.
+  - Nutzer kann in den Einstellungen wählen:
+    - „Systemstandard“ (je nach System‑Thema),
+    - „immer hell“,
+    - „immer dunkel“.
+
+## 8. WebDAV-Synchronisation
+- Synchronisiere die Tagebuchdaten mit einem WebDAV-Server.
+- Unterstützung für:
+  - Direkte Sync (wenn Netzwerk verfügbar).
+  - Verzögerte/Background-Sync (wenn WLAN verfügbar).
+- Zweirichtungs-Sync:
+  - Änderungen auf Gerät und Server werden zusammengeführt.
+  - Konflikte sinnvoll behandeln (z.B. neuer Zeitstempel bevorzugt).
+- Alle Daten auf dem WebDAV-Server müssen:
+  - Clientseitig verschlüsselt werden (nur verschlüsselte Datei wird hochgeladen).
+  - Verschlüsselungsschlüssel aus dem Passwort/Passphrase des Nutzers abgeleitet.
+- Offline-Verwendung:
+  - Tagebuch auch ohne Verbindung nutzbar.
+  - Ausstehende Sync werden nach Verbinden automatisch durchgeführt.
+
+## 9. Datenmodell (high-level)
+- Speichere:
+  - Ein „Tag“-Eintrag mit mehreren Seiten.
+  - Pro Seite: Text, Bilder, Emojis mit Position/Größe/Drehung.
+- Serialisiere die Daten (z.B. JSON oder benutzerdefinierter Format) und verschlüssele sie bevor sie auf WebDAV gespeichert werden.
+- Lokaler Cache für schnellen Zugriff und Offline‑Betrieb.
+
+## 10. Teilen von Seiten als Screenshot
+- Jede Seite im Popup soll als Screenshot geteilt werden können.
+- Funktion:
+  - Ein Button „Teilen“ / „Seite teilen“ im Popup.
+  - App rendert die aktuelle Seite als vollständiges Bild (inklusive Hintergrund, Text, Bilder, Emojis).
+  - Nutzer wählt aus, wohin geteilt werden soll (z.B. WhatsApp, Threema, Signal, E‑Mail, etc.).
+- Option:
+  - Schwarzes/weißes oder weniger „privat einsehbare“ Version erzeugen (z.B. Text leicht verfremdet, wenn gewünscht).
+- Sicherheit:
+  - Nur der aktuelle Inhalt der sichtbaren Seite wird exportiert, nicht die verschlüsselten Backend‑Daten.
+
+## 11. Technische Anforderungen
+- Zielplattform: **Android 15 und höhere Versionen**.
+- Empfohlene Technologie: Kotlin, vorzugsweise mit Jetpack Compose.
+- Moderne Android‑Architektur (z.B. ViewModels, Repository‑Pattern, Room oder eigenes Datenmodell).
+- Offline‑first‑Design, sauberer Code und gute Testbarkeit.
+
+## 12. GitHub-Repo & Repo-Policy
+- Erstelle ein **privates GitHub‑Repository** für die App.
+- Quellcode soll **nicht öffentlich** zugänglich sein.
+- Optional: später können Docs/Readme oder Teile als öffentliches „Demo“‑Projekt entstehen, aber Code bleibt privat.
+
+## 13. Optional / Nice-to-have
+- Suchfunktion (nach Datum oder Text‑Teil).
+- Backup/Restore über WebDAV.
+- Export-Option (z.B. zu PDF oder Plain‑Text).
+- Option, gesicherte bzw. „öffentlichere“ Version der zu teilenden Seite zu erzeugen.
