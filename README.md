@@ -1,2 +1,2 @@
 # Tagebuch-App
-Hier ist ein kleines Tagebuch mit Pin/Fingerscanner freischaltung und webdav synchronisation
+Hier ensteht ein kleines Tagebuch mit PIN‑ und Fingerscanner‑Freischaltung sowie WebDAV‑Synchronisation
