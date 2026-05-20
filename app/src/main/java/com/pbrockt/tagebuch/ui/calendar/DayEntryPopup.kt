@@ -1,0 +1,125 @@
+package com.pbrockt.tagebuch.ui.calendar
+
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.items
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.dp
+import com.pbrockt.tagebuch.data.model.DiaryPage
+import com.pbrockt.tagebuch.ui.editor.EntryEditorScreen
+import java.time.LocalDate
+import java.time.format.DateTimeFormatter
+import java.util.Locale
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun DayEntryPopup(
+    date: LocalDate,
+    viewModel: CalendarViewModel,
+    onDismiss: () -> Unit
+) {
+    val pages by viewModel.pagesForSelectedDay.collectAsState()
+    var selectedPageIndex by remember { mutableIntStateOf(0) }
+
+    ModalBottomSheet(
+        onDismissRequest = onDismiss,
+        sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true),
+        modifier = Modifier.fillMaxHeight(0.92f)
+    ) {
+        Column(modifier = Modifier.fillMaxSize()) {
+            // Header
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp, vertical = 8.dp),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = date.format(DateTimeFormatter.ofPattern("dd. MMMM yyyy", Locale.GERMAN)),
+                    style = MaterialTheme.typography.titleMedium
+                )
+                Row {
+                    if (pages.isNotEmpty()) {
+                        IconButton(onClick = {
+                            pages.getOrNull(selectedPageIndex)?.let { viewModel.deletePage(it) }
+                            selectedPageIndex = maxOf(0, selectedPageIndex - 1)
+                        }) {
+                            Icon(Icons.Default.Delete, contentDescription = "Seite löschen")
+                        }
+                    }
+                    IconButton(onClick = onDismiss) {
+                        Icon(Icons.Default.Close, contentDescription = "Schließen")
+                    }
+                }
+            }
+
+            // Tab Row for pages
+            if (pages.isNotEmpty()) {
+                LazyRow(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    items(pages.indices.toList()) { index ->
+                        FilterChip(
+                            selected = index == selectedPageIndex,
+                            onClick = { selectedPageIndex = index },
+                            label = { Text("Seite ${index + 1}") }
+                        )
+                    }
+                    item {
+                        InputChip(
+                            selected = false,
+                            onClick = {
+                                viewModel.addPageToSelectedDay()
+                                selectedPageIndex = pages.size
+                            },
+                            label = { Text("Neue Seite") },
+                            trailingIcon = { Icon(Icons.Default.Add, null, modifier = Modifier.size(16.dp)) }
+                        )
+                    }
+                }
+                HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))
+            }
+
+            // Editor or empty state
+            if (pages.isEmpty()) {
+                Box(
+                    modifier = Modifier.fillMaxSize(),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                        Text(
+                            "Noch kein Eintrag",
+                            style = MaterialTheme.typography.bodyLarge,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                        Spacer(Modifier.height(16.dp))
+                        Button(onClick = { viewModel.addPageToSelectedDay() }) {
+                            Icon(Icons.Default.Add, null)
+                            Spacer(Modifier.width(8.dp))
+                            Text("Eintrag erstellen")
+                        }
+                    }
+                }
+            } else {
+                pages.getOrNull(selectedPageIndex)?.let { page ->
+                    EntryEditorScreen(
+                        page = page,
+                        onPageChanged = { viewModel.savePage(it) },
+                        modifier = Modifier.fillMaxSize()
+                    )
+                }
+            }
+        }
+    }
+}
