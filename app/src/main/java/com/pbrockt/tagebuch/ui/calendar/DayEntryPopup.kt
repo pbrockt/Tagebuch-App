@@ -12,11 +12,19 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import com.pbrockt.tagebuch.data.model.DiaryDay
 import com.pbrockt.tagebuch.data.model.DiaryPage
 import com.pbrockt.tagebuch.ui.editor.EntryEditorScreen
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import java.util.Locale
+
+private val MOODS = listOf(
+    "great" to "😁", "good" to "😊", "okay" to "😐", "bad" to "😔", "awful" to "😢"
+)
+private val WEATHERS = listOf(
+    "sunny" to "☀️", "cloudy" to "☁️", "rainy" to "🌧️", "snowy" to "❄️", "stormy" to "⛈️"
+)
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -26,6 +34,8 @@ fun DayEntryPopup(
     onDismiss: () -> Unit
 ) {
     val pages by viewModel.pagesForSelectedDay.collectAsState()
+    val allDays by viewModel.allDays.collectAsState()
+    val dayInfo = allDays.find { it.date == date.toString() }
     var selectedPageIndex by remember { mutableIntStateOf(0) }
 
     ModalBottomSheet(
@@ -36,14 +46,12 @@ fun DayEntryPopup(
         Column(modifier = Modifier.fillMaxSize()) {
             // Header
             Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 16.dp, vertical = 8.dp),
+                modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp),
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(
-                    text = date.format(DateTimeFormatter.ofPattern("dd. MMMM yyyy", Locale.GERMAN)),
+                    date.format(DateTimeFormatter.ofPattern("dd. MMMM yyyy", Locale.GERMAN)),
                     style = MaterialTheme.typography.titleMedium
                 )
                 Row {
@@ -51,22 +59,52 @@ fun DayEntryPopup(
                         IconButton(onClick = {
                             pages.getOrNull(selectedPageIndex)?.let { viewModel.deletePage(it) }
                             selectedPageIndex = maxOf(0, selectedPageIndex - 1)
-                        }) {
-                            Icon(Icons.Default.Delete, contentDescription = "Seite löschen")
-                        }
+                        }) { Icon(Icons.Default.Delete, null) }
                     }
-                    IconButton(onClick = onDismiss) {
-                        Icon(Icons.Default.Close, contentDescription = "Schließen")
-                    }
+                    IconButton(onClick = onDismiss) { Icon(Icons.Default.Close, null) }
                 }
             }
 
-            // Tab Row for pages
+            // Mood + Weather row
+            Row(
+                modifier = Modifier.fillMaxWidth().padding(horizontal = 12.dp),
+                horizontalArrangement = Arrangement.spacedBy(4.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text("Stimmung:", style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant)
+                MOODS.forEach { (key, emoji) ->
+                    FilterChip(
+                        selected = dayInfo?.mood == key,
+                        onClick = { viewModel.setMood(date.toString(), if (dayInfo?.mood == key) null else key) },
+                        label = { Text(emoji) },
+                        modifier = Modifier.height(32.dp)
+                    )
+                }
+            }
+            Row(
+                modifier = Modifier.fillMaxWidth().padding(horizontal = 12.dp),
+                horizontalArrangement = Arrangement.spacedBy(4.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text("Wetter:", style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant)
+                WEATHERS.forEach { (key, emoji) ->
+                    FilterChip(
+                        selected = dayInfo?.weather == key,
+                        onClick = { viewModel.setWeather(date.toString(), if (dayInfo?.weather == key) null else key) },
+                        label = { Text(emoji) },
+                        modifier = Modifier.height(32.dp)
+                    )
+                }
+            }
+
+            HorizontalDivider(modifier = Modifier.padding(vertical = 4.dp))
+
+            // Page tabs
             if (pages.isNotEmpty()) {
                 LazyRow(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 16.dp),
+                    modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp),
                     horizontalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
                     items(pages.indices.toList()) { index ->
@@ -79,35 +117,22 @@ fun DayEntryPopup(
                     item {
                         InputChip(
                             selected = false,
-                            onClick = {
-                                viewModel.addPageToSelectedDay()
-                                selectedPageIndex = pages.size
-                            },
+                            onClick = { viewModel.addPageToSelectedDay(); selectedPageIndex = pages.size },
                             label = { Text("Neue Seite") },
-                            trailingIcon = { Icon(Icons.Default.Add, null, modifier = Modifier.size(16.dp)) }
+                            trailingIcon = { Icon(Icons.Default.Add, null, Modifier.size(16.dp)) }
                         )
                     }
                 }
-                HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))
+                HorizontalDivider(modifier = Modifier.padding(vertical = 4.dp))
             }
 
-            // Editor or empty state
             if (pages.isEmpty()) {
-                Box(
-                    modifier = Modifier.fillMaxSize(),
-                    contentAlignment = Alignment.Center
-                ) {
+                Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                        Text(
-                            "Noch kein Eintrag",
-                            style = MaterialTheme.typography.bodyLarge,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
+                        Text("Noch kein Eintrag", color = MaterialTheme.colorScheme.onSurfaceVariant)
                         Spacer(Modifier.height(16.dp))
                         Button(onClick = { viewModel.addPageToSelectedDay() }) {
-                            Icon(Icons.Default.Add, null)
-                            Spacer(Modifier.width(8.dp))
-                            Text("Eintrag erstellen")
+                            Icon(Icons.Default.Add, null); Spacer(Modifier.width(8.dp)); Text("Eintrag erstellen")
                         }
                     }
                 }
