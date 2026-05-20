@@ -16,13 +16,33 @@ android {
         minSdk = 35
         targetSdk = 35
         versionCode = 1
-        versionName = "1.0"
+        versionName = "0.1a"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
+    val keystoreFile = file("tagebuch.keystore")
+    signingConfigs {
+        create("consistent") {
+            if (keystoreFile.exists()) {
+                storeFile = keystoreFile
+                storePassword = "tagebuch2024"
+                keyAlias = "tagebuchkey"
+                keyPassword = "tagebuch2024"
+            }
+        }
+    }
+
     buildTypes {
+        debug {
+            if (keystoreFile.exists()) {
+                signingConfig = signingConfigs.getByName("consistent")
+            }
+        }
         release {
             isMinifyEnabled = true
+            if (keystoreFile.exists()) {
+                signingConfig = signingConfigs.getByName("consistent")
+            }
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
@@ -70,9 +90,8 @@ dependencies {
     implementation(libs.android.database.sqlcipher)
     implementation(libs.androidx.sqlite.ktx)
 
-    // Security + Biometrics
+    // Security
     implementation(libs.androidx.security.crypto)
-    implementation(libs.androidx.biometric)
 
     // Hilt DI
     implementation(libs.hilt.android)
@@ -82,9 +101,6 @@ dependencies {
     // OkHttp (WebDAV)
     implementation(libs.okhttp)
     implementation(libs.okhttp.logging)
-
-    // DataStore
-    implementation(libs.androidx.datastore.preferences)
 
     // WorkManager
     implementation(libs.androidx.work.runtime.ktx)
