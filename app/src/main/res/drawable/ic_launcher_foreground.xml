@@ -4,13 +4,32 @@
     android:height="108dp"
     android:viewportWidth="108"
     android:viewportHeight="108">
-    <path
-        android:fillColor="#FFFFFF"
-        android:pathData="M54,30 C54,30 36,42 36,57 C36,66.94 44.06,75 54,75 C63.94,75 72,66.94 72,57 C72,42 54,30 54,30Z" />
-    <path
-        android:fillColor="#FFFFFF"
-        android:pathData="M46,58 L62,58 M54,50 L54,66"
-        android:strokeColor="#6650A4"
-        android:strokeWidth="3"
-        android:strokeLineCap="round" />
+
+    <!-- Page stack (right edge) -->
+    <path android:fillColor="#E0E0E0"
+        android:pathData="M65,17 L72,17 Q74,17 74,19 L74,89 Q74,91 72,91 L65,91 Z"/>
+    <path android:fillColor="#EEEEEE"
+        android:pathData="M67,17 L72,17 Q74,17 74,19 L74,89 Q74,91 72,91 L67,91 Z"/>
+
+    <!-- Diary cover -->
+    <path android:fillColor="#FFFFFF"
+        android:pathData="M24,15 L65,15 Q69,15 69,19 L69,89 Q69,93 65,93 L24,93 Q20,93 20,89 L20,19 Q20,15 24,15 Z"/>
+
+    <!-- Bookmark ribbon -->
+    <path android:fillColor="#D0BCFF"
+        android:pathData="M57,15 L67,15 L67,42 L62,37 L57,42 Z"/>
+
+    <!-- Text lines -->
+    <path android:fillColor="#CCCCCC"
+        android:pathData="M27,35 L62,35 L62,37 L27,37 Z"/>
+    <path android:fillColor="#CCCCCC"
+        android:pathData="M27,44 L62,44 L62,46 L27,46 Z"/>
+    <path android:fillColor="#CCCCCC"
+        android:pathData="M27,53 L62,53 L62,55 L27,55 Z"/>
+    <path android:fillColor="#CCCCCC"
+        android:pathData="M27,62 L50,62 L50,64 L27,64 Z"/>
+
+    <!-- Heart on cover -->
+    <path android:fillColor="#EFB8C8"
+        android:pathData="M44,75 C44,73 42,71 40,73 L38,75 C38,77 40,79 44,82 C48,79 50,77 50,75 L48,73 C46,71 44,73 44,75 Z"/>
 </vector>
