@@ -16,8 +16,12 @@ class MainViewModel @Inject constructor(private val prefs: SecurePrefs) : ViewMo
     private val _accentColor = MutableStateFlow(prefs.accentColor)
     val accentColor: StateFlow<String> = _accentColor
 
+    private val _calendarIconMode = MutableStateFlow(prefs.calendarIconMode)
+    val calendarIconMode: StateFlow<String> = _calendarIconMode
+
     fun refresh() {
         _themeChoice.value = prefs.themeChoice
         _accentColor.value = prefs.accentColor
+        _calendarIconMode.value = prefs.calendarIconMode
     }
 }
