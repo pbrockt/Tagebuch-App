@@ -48,6 +48,7 @@ fun SettingsScreen(
     val accentColor by viewModel.accentColor.collectAsState()
     val calendarIconMode by viewModel.calendarIconMode.collectAsState()
     val syncState by viewModel.syncState.collectAsState()
+    val testState by viewModel.testState.collectAsState()
     val reminderEnabled by viewModel.reminderEnabled.collectAsState()
     val reminderHour by viewModel.reminderHour.collectAsState()
     val reminderMinute by viewModel.reminderMinute.collectAsState()
@@ -200,13 +201,37 @@ fun SettingsScreen(
             OutlinedTextField(value = webDavEncPassInput, onValueChange = { webDavEncPassInput = it },
                 label = { Text("Verschlüsselungs-Passphrase") }, modifier = Modifier.fillMaxWidth(),
                 singleLine = true, visualTransformation = PasswordVisualTransformation())
-            Button(onClick = { viewModel.saveWebDavConfig(webDavUrlInput, webDavUserInput, webDavPassInput, webDavEncPassInput) },
-                Modifier.fillMaxWidth()) { Text("WebDAV speichern") }
+            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                Button(
+                    onClick = { viewModel.saveWebDavConfig(webDavUrlInput, webDavUserInput, webDavPassInput, webDavEncPassInput) },
+                    modifier = Modifier.weight(1f)
+                ) { Text("Speichern") }
+                OutlinedButton(
+                    onClick = { viewModel.testConnection(webDavUrlInput, webDavUserInput, webDavPassInput) },
+                    modifier = Modifier.weight(1f)
+                ) { Text("Verbindung testen") }
+            }
+
+            // Test-Ergebnis
+            when (testState) {
+                is SyncResult.Success -> Text(
+                    "✓ Verbindung erfolgreich",
+                    color = MaterialTheme.colorScheme.primary,
+                    style = MaterialTheme.typography.bodySmall
+                )
+                is SyncResult.Error -> Text(
+                    "✗ ${(testState as SyncResult.Error).message}",
+                    color = MaterialTheme.colorScheme.error,
+                    style = MaterialTheme.typography.bodySmall
+                )
+                null, is SyncResult.NotConfigured -> {}
+            }
+
             OutlinedButton(onClick = { viewModel.syncNow() }, Modifier.fillMaxWidth()) { Text("Jetzt synchronisieren") }
             when (syncState) {
-                is SyncResult.Success -> Text("Sync erfolgreich", color = MaterialTheme.colorScheme.primary)
-                is SyncResult.Error -> Text("Fehler: ${(syncState as SyncResult.Error).message}", color = MaterialTheme.colorScheme.error)
-                is SyncResult.NotConfigured -> Text("WebDAV nicht konfiguriert", color = MaterialTheme.colorScheme.onSurfaceVariant)
+                is SyncResult.Success -> Text("Sync erfolgreich ✓", color = MaterialTheme.colorScheme.primary, style = MaterialTheme.typography.bodySmall)
+                is SyncResult.Error -> Text("Sync-Fehler: ${(syncState as SyncResult.Error).message}", color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodySmall)
+                is SyncResult.NotConfigured -> Text("WebDAV nicht konfiguriert", color = MaterialTheme.colorScheme.onSurfaceVariant, style = MaterialTheme.typography.bodySmall)
                 null -> {}
             }
 
