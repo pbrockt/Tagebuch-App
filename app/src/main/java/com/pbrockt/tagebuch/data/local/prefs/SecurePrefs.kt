@@ -16,9 +16,7 @@ class SecurePrefs @Inject constructor(@ApplicationContext context: Context) {
         .build()
 
     private val prefs: SharedPreferences = EncryptedSharedPreferences.create(
-        context,
-        "tagebuch_secure_prefs",
-        masterKey,
+        context, "tagebuch_secure_prefs", masterKey,
         EncryptedSharedPreferences.PrefKeyEncryptionScheme.AES256_SIV,
         EncryptedSharedPreferences.PrefValueEncryptionScheme.AES256_GCM
     )
@@ -59,6 +57,10 @@ class SecurePrefs @Inject constructor(@ApplicationContext context: Context) {
         get() = prefs.getString(KEY_THEME, THEME_SYSTEM) ?: THEME_SYSTEM
         set(value) = prefs.edit().putString(KEY_THEME, value).apply()
 
+    var accentColor: String
+        get() = prefs.getString(KEY_ACCENT_COLOR, ACCENT_PURPLE) ?: ACCENT_PURPLE
+        set(value) = prefs.edit().putString(KEY_ACCENT_COLOR, value).apply()
+
     companion object {
         const val KEY_PIN_HASH = "pin_hash"
         const val KEY_BIOMETRIC = "biometric_enabled"
@@ -69,6 +71,7 @@ class SecurePrefs @Inject constructor(@ApplicationContext context: Context) {
         const val KEY_WEBDAV_ENC_PASS = "webdav_enc_pass"
         const val KEY_SYNC_ENABLED = "sync_enabled"
         const val KEY_THEME = "theme"
+        const val KEY_ACCENT_COLOR = "accent_color"
 
         const val AUTH_NONE = "none"
         const val AUTH_PIN = "pin"
@@ -77,5 +80,12 @@ class SecurePrefs @Inject constructor(@ApplicationContext context: Context) {
         const val THEME_SYSTEM = "system"
         const val THEME_LIGHT = "light"
         const val THEME_DARK = "dark"
+
+        const val ACCENT_PURPLE = "purple"
+        const val ACCENT_BLUE = "blue"
+        const val ACCENT_GREEN = "green"
+        const val ACCENT_ORANGE = "orange"
+        const val ACCENT_PINK = "pink"
+        const val ACCENT_TEAL = "teal"
     }
 }
