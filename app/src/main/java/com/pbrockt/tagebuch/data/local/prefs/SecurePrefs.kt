@@ -61,6 +61,18 @@ class SecurePrefs @Inject constructor(@ApplicationContext context: Context) {
         get() = prefs.getString(KEY_ACCENT_COLOR, ACCENT_PURPLE) ?: ACCENT_PURPLE
         set(value) = prefs.edit().putString(KEY_ACCENT_COLOR, value).apply()
 
+    var reminderEnabled: Boolean
+        get() = prefs.getBoolean(KEY_REMINDER_ENABLED, false)
+        set(value) = prefs.edit().putBoolean(KEY_REMINDER_ENABLED, value).apply()
+
+    var reminderHour: Int
+        get() = prefs.getInt(KEY_REMINDER_HOUR, 21)
+        set(value) = prefs.edit().putInt(KEY_REMINDER_HOUR, value).apply()
+
+    var reminderMinute: Int
+        get() = prefs.getInt(KEY_REMINDER_MINUTE, 0)
+        set(value) = prefs.edit().putInt(KEY_REMINDER_MINUTE, value).apply()
+
     companion object {
         const val KEY_PIN_HASH = "pin_hash"
         const val KEY_BIOMETRIC = "biometric_enabled"
@@ -72,6 +84,9 @@ class SecurePrefs @Inject constructor(@ApplicationContext context: Context) {
         const val KEY_SYNC_ENABLED = "sync_enabled"
         const val KEY_THEME = "theme"
         const val KEY_ACCENT_COLOR = "accent_color"
+        const val KEY_REMINDER_ENABLED = "reminder_enabled"
+        const val KEY_REMINDER_HOUR = "reminder_hour"
+        const val KEY_REMINDER_MINUTE = "reminder_minute"
 
         const val AUTH_NONE = "none"
         const val AUTH_PIN = "pin"
