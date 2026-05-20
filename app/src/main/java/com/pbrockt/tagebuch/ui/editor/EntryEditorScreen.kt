@@ -1,42 +1,82 @@
+@file:OptIn(ExperimentalFoundationApi::class)
+
 package com.pbrockt.tagebuch.ui.editor
 
-import android.content.Intent
-import android.net.Uri
-import androidx.activity.compose.rememberLauncherForActivityResult
-import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
-import androidx.compose.foundation.gestures.detectTransformGestures
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.*
+import androidx.compose.material.icons.filled.FormatBold
+import androidx.compose.material.icons.filled.FormatClear
+import androidx.compose.material.icons.filled.FormatItalic
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.input.pointer.pointerInput
-import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.layout.onSizeChanged
-import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.unit.IntOffset
+import androidx.compose.ui.graphics.SolidColor
+import androidx.compose.ui.text.*
+import androidx.compose.ui.text.font.FontStyle
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
-import coil.compose.AsyncImage
 import com.pbrockt.tagebuch.data.model.DiaryPage
-import com.pbrockt.tagebuch.data.model.MediaType
-import com.pbrockt.tagebuch.data.model.PageMedia
+import kotlinx.serialization.Serializable
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
-import java.util.UUID
-import kotlin.math.roundToInt
 
 private val json = Json { ignoreUnknownKeys = true }
+
+@Serializable
+data class FormattedContent(
+    val text: String = "",
+    val spans: List<FormatSpan> = emptyList()
+)
+
+@Serializable
+data class FormatSpan(
+    val start: Int,
+    val end: Int,
+    val bold: Boolean = false,
+    val italic: Boolean = false,
+    val colorHex: String? = null  // 6-stellig RGB ohne #, z.B. "E53935"
+)
+
+private fun loadContent(raw: String): FormattedContent =
+    if (raw.startsWith("{"))
+        runCatching { json.decodeFromString<FormattedContent>(raw) }.getOrElse { FormattedContent(raw) }
+    else FormattedContent(raw)
+
+private fun FormattedContent.toAnnotatedString(): AnnotatedString {
+    val builder = AnnotatedString.Builder(text)
+    for (span in spans) {
+        if (span.start >= text.length || span.start >= span.end) continue
+        val end = span.end.coerceAtMost(text.length)
+        val color = span.colorHex?.let { hex ->
+            Color(("FF$hex").toLong(16) or 0xFF000000L)
+        } ?: Color.Unspecified
+        builder.addStyle(
+            SpanStyle(
+                fontWeight = if (span.bold) FontWeight.Bold else null,
+                fontStyle = if (span.italic) FontStyle.Italic else null,
+                color = color
+            ),
+            span.start, end
+        )
+    }
+    return builder.toAnnotatedString()
+}
+
+// Farb-Optionen: null = Standardfarbe (Theme)
+private val TEXT_COLORS = listOf<String?>(null, "E53935", "1E88E5", "43A047", "FB8C00", "8E24AA")
 
 @Composable
 fun EntryEditorScreen(
@@ -44,274 +84,150 @@ fun EntryEditorScreen(
     onPageChanged: (DiaryPage) -> Unit,
     modifier: Modifier = Modifier
 ) {
-    val context = LocalContext.current
-    var text by remember(page.id) { mutableStateOf(page.content) }
-    var mediaItems by remember(page.id) {
-        mutableStateOf(runCatching { json.decodeFromString<List<PageMedia>>(page.mediaJson) }.getOrElse { emptyList() })
+    var content by remember(page.id) { mutableStateOf(loadContent(page.content)) }
+    var tfv by remember(page.id) {
+        mutableStateOf(TextFieldValue(annotatedString = content.toAnnotatedString()))
     }
-    var showEmojiPicker by remember { mutableStateOf(false) }
-    var canvasExpanded by remember { mutableStateOf(true) }
-    var canvasWidth by remember { mutableStateOf(0f) }
-    var canvasHeight by remember { mutableStateOf(0f) }
+    val hasSelection = tfv.selection.length > 0
 
-    fun saveMedia(items: List<PageMedia>) {
-        mediaItems = items
-        onPageChanged(page.copy(mediaJson = json.encodeToString(items), updatedAt = System.currentTimeMillis()))
-    }
-
-    fun resetPositions() {
-        val cols = 3
-        val spacing = 120f
-        saveMedia(mediaItems.mapIndexed { i, item ->
-            item.copy(
-                positionX = (i % cols) * spacing + 16f,
-                positionY = (i / cols) * spacing + 16f,
-                scale = 1f
-            )
-        })
+    fun persist(newContent: FormattedContent, sel: TextRange) {
+        content = newContent
+        tfv = TextFieldValue(annotatedString = newContent.toAnnotatedString(), selection = sel)
+        onPageChanged(page.copy(
+            content = json.encodeToString(newContent),
+            updatedAt = System.currentTimeMillis()
+        ))
     }
 
-    val imageLauncher = rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri ->
-        uri?.let {
-            runCatching {
-                context.contentResolver.takePersistableUriPermission(it, Intent.FLAG_GRANT_READ_URI_PERMISSION)
-            }
-            saveMedia(mediaItems + PageMedia(
-                id = UUID.randomUUID().toString(),
-                type = MediaType.IMAGE,
-                uri = it.toString(),
-                positionX = 20f, positionY = 20f,
-                width = 160f, height = 160f
-            ))
-            canvasExpanded = true
-        }
+    fun applySpan(bold: Boolean? = null, italic: Boolean? = null, colorHex: String? = "KEEP") {
+        val sel = tfv.selection
+        if (sel.collapsed) return
+        val s = sel.min; val e = sel.max
+        val kept = content.spans.filter { it.end <= s || it.start >= e }
+        val base = content.spans.firstOrNull { it.start < e && it.end > s }
+        val newSpan = FormatSpan(
+            start = s, end = e,
+            bold = bold ?: (base?.bold ?: false),
+            italic = italic ?: (base?.italic ?: false),
+            colorHex = if (colorHex == "KEEP") base?.colorHex else colorHex
+        )
+        persist(content.copy(spans = kept + newSpan), sel)
+    }
+
+    fun clearFormat() {
+        val sel = tfv.selection
+        if (sel.collapsed) return
+        persist(content.copy(
+            spans = content.spans.filter { it.end <= sel.min || it.start >= sel.max }
+        ), sel)
     }
 
     Column(modifier = modifier) {
-        // --- Toolbar ---
-        Row(
-            modifier = Modifier.fillMaxWidth().padding(horizontal = 8.dp),
-            horizontalArrangement = Arrangement.End,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            IconButton(onClick = { showEmojiPicker = !showEmojiPicker }) {
-                Icon(Icons.Default.EmojiEmotions, "Emoji")
-            }
-            IconButton(onClick = { imageLauncher.launch("image/*") }) {
-                Icon(Icons.Default.Image, "Bild")
+
+        // --- Formatierungs-Toolbar ---
+        Surface(tonalElevation = 2.dp) {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .horizontalScroll(rememberScrollState())
+                    .padding(horizontal = 8.dp, vertical = 4.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(4.dp)
+            ) {
+                // Fett
+                IconButton(onClick = {
+                    val cur = content.spans.any { it.start <= tfv.selection.min && it.end >= tfv.selection.max && it.bold }
+                    applySpan(bold = !cur)
+                }, enabled = hasSelection) {
+                    Icon(Icons.Default.FormatBold, "Fett",
+                        tint = if (hasSelection) MaterialTheme.colorScheme.primary
+                        else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.3f))
+                }
+                // Kursiv
+                IconButton(onClick = {
+                    val cur = content.spans.any { it.start <= tfv.selection.min && it.end >= tfv.selection.max && it.italic }
+                    applySpan(italic = !cur)
+                }, enabled = hasSelection) {
+                    Icon(Icons.Default.FormatItalic, "Kursiv",
+                        tint = if (hasSelection) MaterialTheme.colorScheme.primary
+                        else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.3f))
+                }
+
+                VerticalDivider(modifier = Modifier.height(28.dp).padding(horizontal = 2.dp))
+
+                // Farb-Kreise
+                TEXT_COLORS.forEach { hex ->
+                    val circleColor = hex?.let { Color(("FF$it").toLong(16) or 0xFF000000L) }
+                        ?: MaterialTheme.colorScheme.onSurface
+                    Box(
+                        modifier = Modifier
+                            .size(26.dp)
+                            .background(circleColor, CircleShape)
+                            .border(1.5.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.5f), CircleShape)
+                            .clickable(
+                                enabled = hasSelection,
+                                indication = null,
+                                interactionSource = remember { MutableInteractionSource() }
+                            ) { applySpan(colorHex = hex) }
+                    )
+                }
+
+                VerticalDivider(modifier = Modifier.height(28.dp).padding(horizontal = 2.dp))
+
+                // Formatierung löschen
+                IconButton(onClick = { clearFormat() }, enabled = hasSelection) {
+                    Icon(Icons.Default.FormatClear, "Formatierung entfernen",
+                        tint = if (hasSelection) MaterialTheme.colorScheme.onSurface
+                        else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.3f))
+                }
             }
         }
 
         HorizontalDivider()
 
-        // --- Canvas-Bereich ---
-        if (mediaItems.isNotEmpty()) {
-            // Canvas-Header mit Steuerung
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f))
-                    .padding(horizontal = 12.dp, vertical = 2.dp),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Text(
-                    "${mediaItems.size} Element${if (mediaItems.size == 1) "" else "e"}",
-                    style = MaterialTheme.typography.labelSmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
+        // --- Texteditor mit AnnotatedString ---
+        BasicTextField(
+            value = tfv,
+            onValueChange = { newTfv ->
+                val newText = newTfv.text
+                val adjustedSpans = content.spans.mapNotNull { span ->
+                    val newEnd = span.end.coerceAtMost(newText.length)
+                    val newStart = span.start.coerceAtMost(newEnd)
+                    if (newStart >= newEnd || newStart >= newText.length) null
+                    else span.copy(start = newStart, end = newEnd)
+                }
+                val newContent = FormattedContent(newText, adjustedSpans)
+                content = newContent
+                tfv = TextFieldValue(
+                    annotatedString = newContent.toAnnotatedString(),
+                    selection = newTfv.selection
                 )
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    // Reset-Button: alle Elemente zurück in den sichtbaren Bereich
-                    TextButton(
-                        onClick = { resetPositions() },
-                        contentPadding = PaddingValues(horizontal = 8.dp, vertical = 0.dp)
-                    ) {
-                        Icon(Icons.Default.Refresh, null, modifier = Modifier.size(14.dp))
-                        Spacer(Modifier.width(4.dp))
-                        Text("Zurücksetzen", style = MaterialTheme.typography.labelSmall)
-                    }
-                    // Alles löschen
-                    TextButton(
-                        onClick = { saveMedia(emptyList()) },
-                        contentPadding = PaddingValues(horizontal = 8.dp, vertical = 0.dp)
-                    ) {
-                        Text("Alles löschen", style = MaterialTheme.typography.labelSmall,
-                            color = MaterialTheme.colorScheme.error)
-                    }
-                    // Auf-/Zuklappen
-                    IconButton(
-                        onClick = { canvasExpanded = !canvasExpanded },
-                        modifier = Modifier.size(32.dp)
-                    ) {
-                        Icon(
-                            if (canvasExpanded) Icons.Default.ExpandLess else Icons.Default.ExpandMore,
-                            contentDescription = if (canvasExpanded) "Canvas einklappen" else "Canvas ausklappen",
-                            modifier = Modifier.size(18.dp)
-                        )
-                    }
-                }
-            }
-
-            // Canvas selbst (nur wenn aufgeklappt)
-            if (canvasExpanded) {
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(220.dp)
-                        .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.25f))
-                        .border(1.dp, MaterialTheme.colorScheme.outlineVariant, RoundedCornerShape(0.dp))
-                        .onSizeChanged {
-                            canvasWidth = it.width.toFloat()
-                            canvasHeight = it.height.toFloat()
-                        }
-                ) {
-                    mediaItems.forEach { item ->
-                        DraggableMediaItem(
-                            item = item,
-                            canvasWidth = canvasWidth,
-                            canvasHeight = canvasHeight,
-                            onUpdate = { updated ->
-                                saveMedia(mediaItems.map { if (it.id == updated.id) updated else it })
-                            },
-                            onDelete = {
-                                saveMedia(mediaItems.filter { it.id != item.id })
-                            }
-                        )
-                    }
-                }
-            }
-
-            HorizontalDivider()
-        }
-
-        // --- Texteditor ---
-        OutlinedTextField(
-            value = text,
-            onValueChange = { newText ->
-                text = newText
-                onPageChanged(page.copy(content = newText, updatedAt = System.currentTimeMillis()))
+                onPageChanged(page.copy(
+                    content = json.encodeToString(newContent),
+                    updatedAt = System.currentTimeMillis()
+                ))
             },
             modifier = Modifier
                 .fillMaxWidth()
                 .weight(1f)
-                .verticalScroll(rememberScrollState()),
-            placeholder = { Text("Schreib deinen Eintrag...") },
-            colors = OutlinedTextFieldDefaults.colors(
-                focusedBorderColor = Color.Transparent,
-                unfocusedBorderColor = Color.Transparent
+                .verticalScroll(rememberScrollState())
+                .padding(16.dp),
+            textStyle = MaterialTheme.typography.bodyLarge.copy(
+                color = MaterialTheme.colorScheme.onSurface
             ),
-            textStyle = MaterialTheme.typography.bodyLarge
+            cursorBrush = SolidColor(MaterialTheme.colorScheme.primary),
+            decorationBox = { innerTextField ->
+                Box {
+                    if (content.text.isEmpty()) {
+                        Text(
+                            "Schreib deinen Eintrag...",
+                            style = MaterialTheme.typography.bodyLarge,
+                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.4f)
+                        )
+                    }
+                    innerTextField()
+                }
+            }
         )
-
-        // --- Emoji-Picker ---
-        if (showEmojiPicker) {
-            EmojiPickerRow { emoji ->
-                saveMedia(mediaItems + PageMedia(
-                    id = UUID.randomUUID().toString(),
-                    type = MediaType.EMOJI,
-                    uri = emoji,
-                    positionX = (20..100).random().toFloat(),
-                    positionY = (20..80).random().toFloat(),
-                    scale = 1.2f
-                ))
-                canvasExpanded = true
-                showEmojiPicker = false
-            }
-        }
-    }
-}
-
-@Composable
-private fun DraggableMediaItem(
-    item: PageMedia,
-    canvasWidth: Float,
-    canvasHeight: Float,
-    onUpdate: (PageMedia) -> Unit,
-    onDelete: () -> Unit
-) {
-    var offsetX by remember(item.id) { mutableFloatStateOf(item.positionX) }
-    var offsetY by remember(item.id) { mutableFloatStateOf(item.positionY) }
-    var scale by remember(item.id) { mutableFloatStateOf(item.scale) }
-    var selected by remember { mutableStateOf(false) }
-
-    // Mindestgröße des Elements um es noch greifen zu können
-    val minVisible = 40f
-
-    Box(
-        modifier = Modifier
-            .offset { IntOffset(offsetX.roundToInt(), offsetY.roundToInt()) }
-            .then(
-                if (selected) Modifier.border(1.5.dp, MaterialTheme.colorScheme.primary, RoundedCornerShape(4.dp))
-                else Modifier
-            )
-            .pointerInput(item.id, canvasWidth, canvasHeight) {
-                detectTransformGestures { _, pan, zoom, _ ->
-                    selected = true
-                    val newScale = (scale * zoom).coerceIn(0.3f, 5f)
-                    val itemSize = minVisible * newScale
-
-                    // Positions clampen — Element bleibt immer im sichtbaren Canvas-Bereich
-                    val maxX = if (canvasWidth > 0) (canvasWidth - itemSize).coerceAtLeast(0f) else 600f
-                    val maxY = if (canvasHeight > 0) (canvasHeight - itemSize).coerceAtLeast(0f) else 400f
-
-                    offsetX = (offsetX + pan.x).coerceIn(0f, maxX)
-                    offsetY = (offsetY + pan.y).coerceIn(0f, maxY)
-                    scale = newScale
-                    onUpdate(item.copy(positionX = offsetX, positionY = offsetY, scale = scale))
-                }
-            }
-    ) {
-        when (item.type) {
-            MediaType.EMOJI -> Text(
-                text = item.uri,
-                fontSize = (36 * scale).sp,
-                modifier = Modifier.padding(4.dp)
-            )
-            MediaType.IMAGE -> AsyncImage(
-                model = Uri.parse(item.uri),
-                contentDescription = null,
-                contentScale = ContentScale.Fit,
-                modifier = Modifier.size(
-                    width = (item.width * scale).dp,
-                    height = (item.height * scale).dp
-                )
-            )
-        }
-        // Löschen-Button wenn ausgewählt
-        if (selected) {
-            IconButton(
-                onClick = onDelete,
-                modifier = Modifier
-                    .size(22.dp)
-                    .align(Alignment.TopEnd)
-                    .background(MaterialTheme.colorScheme.error, CircleShape)
-            ) {
-                Icon(Icons.Default.Close, null, tint = Color.White, modifier = Modifier.size(12.dp))
-            }
-        }
-    }
-}
-
-@Composable
-private fun EmojiPickerRow(onEmojiSelected: (String) -> Unit) {
-    val emojis = listOf(
-        "😊","😢","😍","😎","🥳","😴","🤔","😤",
-        "❤️","⭐","🌟","🔥","🎉","🌈","☀️","🌙",
-        "🐶","🌺","🍕","🎵","✈️","🏠","📚","💪"
-    )
-    Card(modifier = Modifier.fillMaxWidth()) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .horizontalScroll(rememberScrollState())
-                .padding(8.dp),
-            horizontalArrangement = Arrangement.spacedBy(4.dp)
-        ) {
-            emojis.forEach { emoji ->
-                TextButton(onClick = { onEmojiSelected(emoji) }) {
-                    Text(emoji, style = MaterialTheme.typography.headlineSmall)
-                }
-            }
-        }
     }
 }
