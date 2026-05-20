@@ -32,7 +32,6 @@ fun SettingsScreen(
     viewModel: SettingsViewModel = hiltViewModel()
 ) {
     val authMethod by viewModel.authMethod.collectAsState()
-    val biometricEnabled by viewModel.biometricEnabled.collectAsState()
     val webDavUrl by viewModel.webDavUrl.collectAsState()
     val webDavUser by viewModel.webDavUser.collectAsState()
     val webDavPassword by viewModel.webDavPassword.collectAsState()
@@ -68,18 +67,18 @@ fun SettingsScreen(
                 .verticalScroll(rememberScrollState()).padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            // --- AUTH ---
-            SectionTitle("Authentifizierung")
+            // --- PIN ---
+            SectionTitle("PIN-Schutz")
             if (authMethod != SecurePrefs.AUTH_NONE) {
                 OutlinedButton(onClick = { viewModel.clearPin() }, Modifier.fillMaxWidth()) {
-                    Text("Keine Authentifizierung")
+                    Text("PIN entfernen (kein Schutz)")
                 }
             }
             if (showPinInput) {
                 OutlinedTextField(
                     value = newPin,
                     onValueChange = { if (it.length <= 4 && it.all { c -> c.isDigit() }) newPin = it },
-                    label = { Text("Neuer PIN (4 Stellen)") },
+                    label = { Text("Neuer PIN (genau 4 Stellen)") },
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.NumberPassword),
                     visualTransformation = PasswordVisualTransformation(),
                     modifier = Modifier.fillMaxWidth(), singleLine = true
@@ -92,10 +91,6 @@ fun SettingsScreen(
                 OutlinedButton(onClick = { showPinInput = true }, Modifier.fillMaxWidth()) {
                     Text(if (authMethod == SecurePrefs.AUTH_PIN) "PIN ändern" else "4-stelligen PIN festlegen")
                 }
-            }
-            Row(Modifier.fillMaxWidth(), Arrangement.SpaceBetween, Alignment.CenterVertically) {
-                Text("Fingerabdruck")
-                Switch(checked = biometricEnabled, onCheckedChange = { viewModel.setBiometricEnabled(it) })
             }
 
             HorizontalDivider()
@@ -130,7 +125,7 @@ fun SettingsScreen(
                                 .then(if (selected) Modifier.border(3.dp, MaterialTheme.colorScheme.onSurface, CircleShape) else Modifier)
                                 .clickable { viewModel.setAccentColor(key) },
                             contentAlignment = Alignment.Center
-                        ) { if (selected) Icon(Icons.Default.Check, null, tint = Color.White, modifier = Modifier.size(16.dp)) }
+                        ) { if (selected) Icon(Icons.Default.Check, null, tint = Color.White, Modifier.size(16.dp)) }
                         Spacer(Modifier.height(4.dp))
                         Text(label, style = MaterialTheme.typography.labelSmall)
                     }
@@ -147,29 +142,18 @@ fun SettingsScreen(
             }
             if (reminderEnabled) {
                 Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    OutlinedTextField(
-                        value = reminderHourInput,
-                        onValueChange = { if (it.length <= 2) reminderHourInput = it },
-                        label = { Text("Stunde (0-23)") },
-                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                        modifier = Modifier.weight(1f), singleLine = true
-                    )
-                    OutlinedTextField(
-                        value = reminderMinuteInput,
-                        onValueChange = { if (it.length <= 2) reminderMinuteInput = it },
-                        label = { Text("Minute (0-59)") },
-                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                        modifier = Modifier.weight(1f), singleLine = true
-                    )
+                    OutlinedTextField(value = reminderHourInput, onValueChange = { if (it.length <= 2) reminderHourInput = it },
+                        label = { Text("Stunde (0–23)") }, keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                        modifier = Modifier.weight(1f), singleLine = true)
+                    OutlinedTextField(value = reminderMinuteInput, onValueChange = { if (it.length <= 2) reminderMinuteInput = it },
+                        label = { Text("Minute (0–59)") }, keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                        modifier = Modifier.weight(1f), singleLine = true)
                 }
-                Button(
-                    onClick = {
-                        val h = reminderHourInput.toIntOrNull()?.coerceIn(0, 23) ?: 21
-                        val m = reminderMinuteInput.toIntOrNull()?.coerceIn(0, 59) ?: 0
-                        viewModel.saveReminderTime(h, m)
-                    },
-                    modifier = Modifier.fillMaxWidth()
-                ) { Text("Erinnerungszeit speichern") }
+                Button(onClick = {
+                    val h = reminderHourInput.toIntOrNull()?.coerceIn(0, 23) ?: 21
+                    val m = reminderMinuteInput.toIntOrNull()?.coerceIn(0, 59) ?: 0
+                    viewModel.saveReminderTime(h, m)
+                }, Modifier.fillMaxWidth()) { Text("Erinnerungszeit speichern") }
             }
 
             HorizontalDivider()
@@ -187,16 +171,14 @@ fun SettingsScreen(
             OutlinedTextField(value = webDavPassInput, onValueChange = { webDavPassInput = it },
                 label = { Text("Passwort") }, modifier = Modifier.fillMaxWidth(), singleLine = true,
                 visualTransformation = if (passVisible) VisualTransformation.None else PasswordVisualTransformation(),
-                trailingIcon = {
-                    IconButton(onClick = { passVisible = !passVisible }) {
-                        Icon(if (passVisible) Icons.Default.VisibilityOff else Icons.Default.Visibility, null)
-                    }
-                })
+                trailingIcon = { IconButton(onClick = { passVisible = !passVisible }) {
+                    Icon(if (passVisible) Icons.Default.VisibilityOff else Icons.Default.Visibility, null)
+                }})
             OutlinedTextField(value = webDavEncPassInput, onValueChange = { webDavEncPassInput = it },
                 label = { Text("Verschlüsselungs-Passphrase") }, modifier = Modifier.fillMaxWidth(),
                 singleLine = true, visualTransformation = PasswordVisualTransformation())
             Button(onClick = { viewModel.saveWebDavConfig(webDavUrlInput, webDavUserInput, webDavPassInput, webDavEncPassInput) },
-                modifier = Modifier.fillMaxWidth()) { Text("WebDAV speichern") }
+                Modifier.fillMaxWidth()) { Text("WebDAV speichern") }
             OutlinedButton(onClick = { viewModel.syncNow() }, Modifier.fillMaxWidth()) { Text("Jetzt synchronisieren") }
             when (syncState) {
                 is SyncResult.Success -> Text("Sync erfolgreich", color = MaterialTheme.colorScheme.primary)
@@ -204,6 +186,11 @@ fun SettingsScreen(
                 is SyncResult.NotConfigured -> Text("WebDAV nicht konfiguriert", color = MaterialTheme.colorScheme.onSurfaceVariant)
                 null -> {}
             }
+
+            Spacer(Modifier.height(8.dp))
+            Text("Version 0.1a", style = MaterialTheme.typography.labelSmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.fillMaxWidth())
         }
     }
 }
