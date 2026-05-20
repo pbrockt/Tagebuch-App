@@ -21,9 +21,6 @@ class AuthViewModel @Inject constructor(private val prefs: SecurePrefs) : ViewMo
     private val _state = MutableStateFlow<AuthState>(AuthState.Idle)
     val state: StateFlow<AuthState> = _state
 
-    val authMethod get() = prefs.authMethod
-    val biometricEnabled get() = prefs.biometricEnabled
-
     init {
         if (prefs.authMethod == SecurePrefs.AUTH_NONE) {
             _state.value = AuthState.NoAuth
@@ -33,10 +30,10 @@ class AuthViewModel @Inject constructor(private val prefs: SecurePrefs) : ViewMo
     fun verifyPin(pin: String) {
         val hash = sha256(pin)
         _state.value = if (hash == prefs.pinHash) AuthState.Success else AuthState.WrongPin
-    }
-
-    fun onBiometricSuccess() {
-        _state.value = AuthState.Success
+        if (_state.value is AuthState.WrongPin) {
+            // Reset after short delay so dots clear
+            _state.value = AuthState.WrongPin
+        }
     }
 
     private fun sha256(input: String): String {
