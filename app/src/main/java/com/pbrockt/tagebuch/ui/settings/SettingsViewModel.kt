@@ -23,8 +23,6 @@ class SettingsViewModel @Inject constructor(
 
     private val _authMethod = MutableStateFlow(prefs.authMethod)
     val authMethod: StateFlow<String> = _authMethod
-    private val _biometricEnabled = MutableStateFlow(prefs.biometricEnabled)
-    val biometricEnabled: StateFlow<Boolean> = _biometricEnabled
     private val _webDavUrl = MutableStateFlow(prefs.webDavUrl)
     val webDavUrl: StateFlow<String> = _webDavUrl
     private val _webDavUser = MutableStateFlow(prefs.webDavUser)
@@ -56,11 +54,6 @@ class SettingsViewModel @Inject constructor(
         prefs.pinHash = null; prefs.authMethod = SecurePrefs.AUTH_NONE
         _authMethod.value = SecurePrefs.AUTH_NONE
     }
-    fun setBiometricEnabled(enabled: Boolean) {
-        prefs.biometricEnabled = enabled
-        if (enabled) prefs.authMethod = SecurePrefs.AUTH_BIOMETRIC
-        _biometricEnabled.value = enabled; _authMethod.value = prefs.authMethod
-    }
     fun saveWebDavConfig(url: String, user: String, pass: String, encPass: String) {
         prefs.webDavUrl = url; prefs.webDavUser = user
         prefs.webDavPassword = pass; prefs.webDavEncryptionPassphrase = encPass
@@ -70,7 +63,6 @@ class SettingsViewModel @Inject constructor(
     fun setSyncEnabled(enabled: Boolean) { prefs.syncEnabled = enabled; _syncEnabled.value = enabled }
     fun setTheme(theme: String) { prefs.themeChoice = theme; _themeChoice.value = theme }
     fun setAccentColor(color: String) { prefs.accentColor = color; _accentColor.value = color }
-
     fun setReminderEnabled(enabled: Boolean) {
         prefs.reminderEnabled = enabled; _reminderEnabled.value = enabled
         if (enabled) ReminderWorker.schedule(context, prefs.reminderHour, prefs.reminderMinute)
@@ -81,7 +73,6 @@ class SettingsViewModel @Inject constructor(
         _reminderHour.value = hour; _reminderMinute.value = minute
         if (prefs.reminderEnabled) ReminderWorker.schedule(context, hour, minute)
     }
-
     fun syncNow() { viewModelScope.launch { syncRepo.triggerSync() } }
 
     private fun sha256(input: String): String {
