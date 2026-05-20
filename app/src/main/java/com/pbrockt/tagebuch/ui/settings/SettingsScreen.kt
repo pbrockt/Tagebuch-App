@@ -46,6 +46,7 @@ fun SettingsScreen(
     val syncEnabled by viewModel.syncEnabled.collectAsState()
     val themeChoice by viewModel.themeChoice.collectAsState()
     val accentColor by viewModel.accentColor.collectAsState()
+    val calendarIconMode by viewModel.calendarIconMode.collectAsState()
     val syncState by viewModel.syncState.collectAsState()
     val reminderEnabled by viewModel.reminderEnabled.collectAsState()
     val reminderHour by viewModel.reminderHour.collectAsState()
@@ -136,6 +137,21 @@ fun SettingsScreen(
                         Spacer(Modifier.height(4.dp))
                         Text(label, style = MaterialTheme.typography.labelSmall)
                     }
+                }
+            }
+
+            Spacer(Modifier.height(4.dp))
+            Text("Kalender-Anzeige", style = MaterialTheme.typography.labelLarge)
+            Spacer(Modifier.height(4.dp))
+            val iconModes = listOf(
+                SecurePrefs.CALENDAR_MODE_MOOD to "Stimmung (Farbige Tages-Hintergrundfarbe)",
+                SecurePrefs.CALENDAR_MODE_WEATHER to "Wetter (Wetter-Icon pro Tag)",
+                SecurePrefs.CALENDAR_MODE_BOTH to "Beides (Farbe + Wetter-Icon)"
+            )
+            iconModes.forEach { (key, label) ->
+                Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+                    RadioButton(selected = calendarIconMode == key, onClick = { viewModel.setCalendarIconMode(key) })
+                    Spacer(Modifier.width(8.dp)); Text(label, style = MaterialTheme.typography.bodySmall)
                 }
             }
 
