@@ -3,7 +3,9 @@ package com.pbrockt.tagebuch.data.remote
 import com.pbrockt.tagebuch.data.local.crypto.PassphraseKdf
 import com.pbrockt.tagebuch.data.local.dao.DiaryDao
 import com.pbrockt.tagebuch.data.local.prefs.SecurePrefs
+import com.pbrockt.tagebuch.data.model.DiaryDay
 import com.pbrockt.tagebuch.data.model.DiaryPage
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.encodeToString
@@ -25,6 +27,21 @@ class SyncManager @Inject constructor(
     private val kdf: PassphraseKdf
 ) {
     private val remoteBasePath = "/tagebuch/"
+    private val json = Json { ignoreUnknownKeys = true }
+
+    suspend fun testConnection(url: String, user: String, pass: String): SyncResult =
+        withContext(Dispatchers.IO) {
+            try {
+                webDavClient.configure(url, user, pass)
+                val result = webDavClient.testConnection()
+                if (result.isSuccess) SyncResult.Success
+                else SyncResult.Error(result.exceptionOrNull()?.message ?: "Unbekannter Fehler")
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: Exception) {
+                SyncResult.Error(e.message ?: "Verbindungsfehler")
+            }
+        }
 
     suspend fun sync(): SyncResult = withContext(Dispatchers.IO) {
         if (!securePrefs.syncEnabled) return@withContext SyncResult.NotConfigured
@@ -34,57 +51,71 @@ class SyncManager @Inject constructor(
         val pass = securePrefs.webDavPassword
         val encPass = securePrefs.webDavEncryptionPassphrase
 
-        if (url.isEmpty() || encPass.isEmpty()) return@withContext SyncResult.NotConfigured
+        if (url.isEmpty()) return@withContext SyncResult.NotConfigured
+        if (encPass.isEmpty()) return@withContext SyncResult.Error("Verschlüsselungs-Passphrase fehlt")
 
-        webDavClient.configure(url, user, pass)
-        val encKey = kdf.deriveKey(encPass)
+        try {
+            webDavClient.configure(url, user, pass)
+            val encKey = kdf.deriveKey(encPass)
 
-        // Ensure remote directory exists
-        webDavClient.createDirectory(remoteBasePath)
+            // Verzeichnis erstellen (ignoriert 405 = already exists)
+            webDavClient.createDirectory(remoteBasePath)
 
-        // Upload unsynced pages
-        val unsyncedPages = dao.getUnsyncedPages()
-        for (page in unsyncedPages) {
-            val json = Json.encodeToString(page)
-            val encrypted = kdf.encryptData(json.toByteArray(), encKey)
-            val remotePath = "$remoteBasePath${page.id}.enc"
-            val result = webDavClient.putFile(remotePath, encrypted)
-            if (result.isSuccess) {
-                dao.markPageSynced(page.id, System.currentTimeMillis())
+            // Lokale ungesyncte Seiten hochladen
+            val unsyncedPages = dao.getUnsyncedPages()
+            for (page in unsyncedPages) {
+                val pageJson = json.encodeToString(page)
+                val encrypted = kdf.encryptData(pageJson.toByteArray(), encKey)
+                val remotePath = "$remoteBasePath${page.id}.enc"
+                val putResult = webDavClient.putFile(remotePath, encrypted)
+                if (putResult.isSuccess) {
+                    dao.markPageSynced(page.id, System.currentTimeMillis())
+                }
+                // Einzelner Fehler stoppt nicht den ganzen Sync
             }
-        }
 
-        // Download remote pages not present locally
-        val remoteResources = webDavClient.listResources(remoteBasePath)
-        if (remoteResources.isFailure) {
-            return@withContext SyncResult.Error(remoteResources.exceptionOrNull()?.message ?: "PROPFIND failed")
-        }
+            // Remote-Seiten holen die lokal fehlen oder neuer sind
+            val remoteResources = webDavClient.listResources(remoteBasePath)
+            if (remoteResources.isFailure) {
+                return@withContext SyncResult.Error(
+                    "PROPFIND fehlgeschlagen: ${remoteResources.exceptionOrNull()?.message}"
+                )
+            }
 
-        for (resource in remoteResources.getOrDefault(emptyList())) {
-            val pageId = resource.path.substringAfterLast("/").removeSuffix(".enc")
-            val localPage = dao.getPageById(pageId)
+            for (resource in remoteResources.getOrDefault(emptyList())) {
+                val pageId = resource.path.substringAfterLast("/").removeSuffix(".enc")
+                if (pageId.isBlank()) continue
 
-            val needsDownload = localPage == null ||
-                    (localPage.syncedAt != null && resource.lastModified > localPage.syncedAt)
+                val localPage = try { dao.getPageById(pageId) } catch (e: Exception) { null }
+                val needsDownload = localPage == null ||
+                        (localPage.syncedAt != null && resource.lastModified > localPage.syncedAt!!)
 
-            if (needsDownload) {
+                if (!needsDownload) continue
+
                 val dataResult = webDavClient.getFile(resource.path)
-                if (dataResult.isSuccess) {
-                    runCatching {
-                        val decrypted = kdf.decryptData(dataResult.getOrThrow(), encKey)
-                        val remotePage = Json.decodeFromString<DiaryPage>(String(decrypted))
-                        // Server wins if newer
-                        if (localPage == null || remotePage.updatedAt > (localPage.updatedAt)) {
-                            dao.upsertDay(
-                                com.pbrockt.tagebuch.data.model.DiaryDay(date = remotePage.dayDate)
-                            )
-                            dao.upsertPage(remotePage.copy(syncedAt = System.currentTimeMillis()))
-                        }
+                if (dataResult.isFailure) continue
+
+                try {
+                    val decrypted = kdf.decryptData(dataResult.getOrThrow(), encKey)
+                    val remotePage = json.decodeFromString<DiaryPage>(String(decrypted))
+                    if (localPage == null || remotePage.updatedAt > localPage.updatedAt) {
+                        dao.upsertDay(DiaryDay(date = remotePage.dayDate))
+                        dao.upsertPage(remotePage.copy(syncedAt = System.currentTimeMillis()))
                     }
+                } catch (e: CancellationException) {
+                    throw e
+                } catch (e: Exception) {
+                    // Einzelne fehlerhafte Datei überspringen
+                    continue
                 }
             }
-        }
 
-        SyncResult.Success
+            SyncResult.Success
+
+        } catch (e: CancellationException) {
+            throw e
+        } catch (e: Exception) {
+            SyncResult.Error(e.message ?: "Sync fehlgeschlagen")
+        }
     }
 }
