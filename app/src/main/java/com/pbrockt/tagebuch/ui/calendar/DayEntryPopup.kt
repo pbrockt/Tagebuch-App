@@ -65,14 +65,15 @@ fun DayEntryPopup(
                 }
             }
 
-            // Mood + Weather row
+            // Mood + Weather rows — Labels auf gleicher Breite (70.dp)
             Row(
                 modifier = Modifier.fillMaxWidth().padding(horizontal = 12.dp),
                 horizontalArrangement = Arrangement.spacedBy(4.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Text("Stimmung:", style = MaterialTheme.typography.labelSmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.width(70.dp))
                 MOODS.forEach { (key, emoji) ->
                     FilterChip(
                         selected = dayInfo?.mood == key,
@@ -88,7 +89,8 @@ fun DayEntryPopup(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Text("Wetter:", style = MaterialTheme.typography.labelSmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.width(70.dp))
                 WEATHERS.forEach { (key, emoji) ->
                     FilterChip(
                         selected = dayInfo?.weather == key,
