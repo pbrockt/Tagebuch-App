@@ -125,7 +125,7 @@ fun SettingsScreen(
                                 .then(if (selected) Modifier.border(3.dp, MaterialTheme.colorScheme.onSurface, CircleShape) else Modifier)
                                 .clickable { viewModel.setAccentColor(key) },
                             contentAlignment = Alignment.Center
-                        ) { if (selected) Icon(Icons.Default.Check, null, tint = Color.White, Modifier.size(16.dp)) }
+                        ) { if (selected) Icon(Icons.Default.Check, null, modifier = Modifier.size(16.dp), tint = Color.White) }
                         Spacer(Modifier.height(4.dp))
                         Text(label, style = MaterialTheme.typography.labelSmall)
                     }
