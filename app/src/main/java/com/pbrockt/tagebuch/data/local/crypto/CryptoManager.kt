@@ -1,8 +1,14 @@
 package com.pbrockt.tagebuch.data.local.crypto
 
+import android.content.Context
 import android.security.keystore.KeyGenParameterSpec
 import android.security.keystore.KeyProperties
+import android.util.Base64
+import androidx.security.crypto.EncryptedSharedPreferences
+import androidx.security.crypto.MasterKey
+import dagger.hilt.android.qualifiers.ApplicationContext
 import java.security.KeyStore
+import java.security.SecureRandom
 import javax.crypto.Cipher
 import javax.crypto.KeyGenerator
 import javax.crypto.SecretKey
@@ -11,10 +17,21 @@ import javax.inject.Inject
 import javax.inject.Singleton
 
 @Singleton
-class CryptoManager @Inject constructor() {
+class CryptoManager @Inject constructor(@ApplicationContext private val context: Context) {
 
     private val keyStore = KeyStore.getInstance("AndroidKeyStore").apply { load(null) }
     private val keyAlias = "tagebuch_db_key"
+
+    private val securePrefs by lazy {
+        val masterKey = MasterKey.Builder(context)
+            .setKeyScheme(MasterKey.KeyScheme.AES256_GCM)
+            .build()
+        EncryptedSharedPreferences.create(
+            context, "crypto_manager_prefs", masterKey,
+            EncryptedSharedPreferences.PrefKeyEncryptionScheme.AES256_SIV,
+            EncryptedSharedPreferences.PrefValueEncryptionScheme.AES256_GCM
+        )
+    }
 
     private fun getOrCreateKey(): SecretKey {
         return if (keyStore.containsAlias(keyAlias)) {
@@ -52,11 +69,18 @@ class CryptoManager @Inject constructor() {
         return cipher.doFinal(ciphertext)
     }
 
+    // Generates (or retrieves) a stable 32-byte passphrase for the Room DB.
+    // Stored encrypted in EncryptedSharedPreferences — never derived from Keystore key material
+    // (which is not exportable on hardware-backed implementations).
     fun generateDbPassphrase(): ByteArray {
-        val key = getOrCreateKey()
-        val cipher = Cipher.getInstance("AES/GCM/NoPadding")
-        cipher.init(Cipher.ENCRYPT_MODE, key)
-        // Deterministischer 32-Byte-Schlüssel aus Key-Material ableiten
-        return key.encoded.copyOf(32).let { it.ifEmpty { ByteArray(32) { it.toByte() } } }
+        val stored = securePrefs.getString("db_passphrase", null)
+        if (stored != null) {
+            return Base64.decode(stored, Base64.DEFAULT)
+        }
+        val passphrase = ByteArray(32).also { SecureRandom().nextBytes(it) }
+        securePrefs.edit()
+            .putString("db_passphrase", Base64.encodeToString(passphrase, Base64.DEFAULT))
+            .apply()
+        return passphrase
     }
 }
