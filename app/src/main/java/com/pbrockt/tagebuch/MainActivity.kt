@@ -7,14 +7,23 @@ import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.hilt.navigation.compose.hiltViewModel
 import com.pbrockt.tagebuch.navigation.AppNavigation
+import com.pbrockt.tagebuch.ui.auth.AuthScreen
 import com.pbrockt.tagebuch.ui.theme.TagebuchTheme
 import dagger.hilt.android.AndroidEntryPoint
+import javax.inject.Inject
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
 
+    @Inject lateinit var appLockManager: AppLockManager
     private val mainViewModel: MainViewModel by viewModels()
+
+    override fun onStop() {
+        super.onStop()
+        appLockManager.lockApp()
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -22,9 +31,14 @@ class MainActivity : ComponentActivity() {
         setContent {
             val themeChoice by mainViewModel.themeChoice.collectAsState()
             val accentColor by mainViewModel.accentColor.collectAsState()
+            val isLocked by appLockManager.isLocked.collectAsState()
 
             TagebuchTheme(themeChoice = themeChoice, accentColor = accentColor) {
-                AppNavigation(onThemeChanged = { mainViewModel.refresh() })
+                if (isLocked) {
+                    AuthScreen(onAuthenticated = { appLockManager.unlockApp() })
+                } else {
+                    AppNavigation(onThemeChanged = { mainViewModel.refresh() })
+                }
             }
         }
     }
