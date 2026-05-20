@@ -5,6 +5,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.pbrockt.tagebuch.data.model.DiaryDay
 import com.pbrockt.tagebuch.data.model.DiaryPage
+import com.pbrockt.tagebuch.data.local.prefs.SecurePrefs
 import com.pbrockt.tagebuch.data.repository.DiaryRepository
 import com.pbrockt.tagebuch.data.repository.SyncRepository
 import com.pbrockt.tagebuch.export.PdfExporter
@@ -21,8 +22,16 @@ import javax.inject.Inject
 class CalendarViewModel @Inject constructor(
     private val diaryRepo: DiaryRepository,
     private val syncRepo: SyncRepository,
+    private val prefs: SecurePrefs,
     @ApplicationContext private val context: Context
 ) : ViewModel() {
+
+    private val _calendarIconMode = MutableStateFlow(prefs.calendarIconMode)
+    val calendarIconMode: StateFlow<String> = _calendarIconMode
+
+    fun refreshSettings() {
+        _calendarIconMode.value = prefs.calendarIconMode
+    }
 
     private val _currentMonth = MutableStateFlow(YearMonth.now())
     val currentMonth: StateFlow<YearMonth> = _currentMonth
