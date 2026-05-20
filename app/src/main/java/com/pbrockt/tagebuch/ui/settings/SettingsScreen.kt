@@ -1,5 +1,10 @@
 package com.pbrockt.tagebuch.ui.settings
 
+import android.Manifest
+import android.content.pm.PackageManager
+import android.os.Build
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -13,6 +18,8 @@ import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.platform.LocalContext
+import androidx.core.content.ContextCompat
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
@@ -187,10 +194,96 @@ fun SettingsScreen(
                 null -> {}
             }
 
+            HorizontalDivider()
+
+            // --- BERECHTIGUNGEN ---
+            PermissionsSection()
+
             Spacer(Modifier.height(8.dp))
             Text("Version 0.1a", style = MaterialTheme.typography.labelSmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 modifier = Modifier.fillMaxWidth())
+        }
+    }
+}
+
+@Composable
+private fun PermissionsSection() {
+    val context = LocalContext.current
+
+    // Track permission state with recomposition trigger
+    var refreshKey by remember { mutableIntStateOf(0) }
+
+    val notifGranted = remember(refreshKey) {
+        if (Build.VERSION.SDK_INT >= 33)
+            ContextCompat.checkSelfPermission(context, Manifest.permission.POST_NOTIFICATIONS) == PackageManager.PERMISSION_GRANTED
+        else true
+    }
+    val mediaGranted = remember(refreshKey) {
+        if (Build.VERSION.SDK_INT >= 33)
+            ContextCompat.checkSelfPermission(context, Manifest.permission.READ_MEDIA_IMAGES) == PackageManager.PERMISSION_GRANTED
+        else
+            ContextCompat.checkSelfPermission(context, Manifest.permission.READ_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED
+    }
+
+    val notifLauncher = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) {
+        refreshKey++
+    }
+    val mediaLauncher = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) {
+        refreshKey++
+    }
+
+    SectionTitle("Berechtigungen")
+
+    PermissionRow(
+        title = "Benachrichtigungen",
+        description = "Für tägliche Erinnerungen",
+        icon = Icons.Default.Notifications,
+        granted = notifGranted,
+        onRequest = {
+            if (Build.VERSION.SDK_INT >= 33)
+                notifLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
+        }
+    )
+    PermissionRow(
+        title = "Fotos & Medien",
+        description = "Bilder in Einträge einfügen",
+        icon = Icons.Default.Image,
+        granted = mediaGranted,
+        onRequest = {
+            if (Build.VERSION.SDK_INT >= 33)
+                mediaLauncher.launch(Manifest.permission.READ_MEDIA_IMAGES)
+            else
+                mediaLauncher.launch(Manifest.permission.READ_EXTERNAL_STORAGE)
+        }
+    )
+}
+
+@Composable
+private fun PermissionRow(
+    title: String,
+    description: String,
+    icon: androidx.compose.ui.graphics.vector.ImageVector,
+    granted: Boolean,
+    onRequest: () -> Unit
+) {
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(12.dp)
+    ) {
+        Icon(icon, null, tint = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.size(24.dp))
+        Column(modifier = Modifier.weight(1f)) {
+            Text(title, style = MaterialTheme.typography.bodyMedium)
+            Text(description, style = MaterialTheme.typography.labelSmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant)
+        }
+        if (granted) {
+            Icon(Icons.Default.CheckCircle, "Erlaubt", tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(24.dp))
+        } else {
+            OutlinedButton(onClick = onRequest, contentPadding = PaddingValues(horizontal = 12.dp, vertical = 4.dp)) {
+                Text("Erlauben", style = MaterialTheme.typography.labelSmall)
+            }
         }
     }
 }
