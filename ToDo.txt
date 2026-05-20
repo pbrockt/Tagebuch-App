@@ -1,108 +1,126 @@
 # App: Tagebuch-App für Android 15+
+# Status: Version 0.1 veröffentlicht
+# Legende: ✅ Umgesetzt | ⚠️ Teilweise | ❌ Nicht umgesetzt | 💡 Neue Idee
+
+---
 
 ## 1. Grundidee
-- Entwicklung einer privatsphäreorientierten Tagebuch-/Journal-App für Android 15 und höhere Versionen.
-- Fokus: Kalender, verschlüsselte Datenspeicherung, WebDAV-Synchronisation.
-- App soll später als **privates Repository auf GitHub** gehostet werden (kein öffentlicher Quellcode).
+✅ Privatsphäreorientierte Tagebuch-/Journal-App für Android 15+
+✅ Fokus: Kalender, verschlüsselte Datenspeicherung, WebDAV-Synchronisation
+✅ Privates GitHub-Repository
 
 ## 2. Zielplattform
-- Mindestens Android 15 (entsprechende API‑Level).
-- Geeignet für Android 15 und neuere Versionen.
-- Optional: gute Kompatibilität zu älteren Android‑Versionen wird nicht gefordert.
+✅ Android 15+ (API 35), Kotlin + Jetpack Compose
+❌ Kompatibilität mit älteren Android-Versionen (nicht geplant)
 
 ## 3. Hauptbildschirm: Kalender
-- Zeige einen Monatskalender (Gitterform).
-- Klick auf einen Tag → öffnet ein Popup (~90 % der Bildschirmhöhe).
-- Wenn für einen Tag bereits Einträge bestehen:
-  - Zeige einen kleinen Hinweis auf dem Kalender (z.B. Punkte/Icon/Textvorschau).
-- Mehrere „Seiten“ pro Tag möglich (z.B. als Tabs oder Swipe-Bereiche im Popup).
+✅ Monatskalender (Gitterform) mit Navigation
+✅ Klick auf Tag → Popup (90 % Bildschirmhöhe)
+✅ Hinweis auf vorhandene Einträge (Punkt-Indikator)
+✅ Mehrere Seiten pro Tag (Tabs im Popup)
+✅ Einträge-Zähler im Monats-Header
+✅ Stimmungs-Farbe pro Tag (grün → rot)
+✅ Wetter-Icon pro Tag
+💡 Geburtstage aus Kontakten im Kalender anzeigen (READ_CONTACTS-Berechtigung)
+💡 Einstellung: Kalender-Icon-Ansicht umschalten (Stimmung ODER Wetter anzeigen)
 
 ## 4. Eintrags-Editor im Popup
-- Im Popup:
-  - Texteingabe per Tastatur (möglichst mit einfacher Formatierung).
-  - Möglichkeit, Bilder und Emojis einzufügen.
-  - Bilder/Emojis können:
-    - vergrößert/verkleinert,
-    - gedreht und
-    - positioniert werden.
-- Optional: einfache Textformatierung (fett, kursiv, etc.).
+✅ Texteingabe per Tastatur
+✅ Emojis einfügbar (aus Picker-Leiste)
+✅ Bilder aus Galerie einfügbar (Bild-Picker)
+✅ Emojis und Bilder frei auf Canvas platzierbar (Drag & Drop)
+✅ Emojis und Bilder skalierbar (Pinch-to-Zoom)
+⚠️ Rotation von Medien (Modell vorhanden, UI noch nicht vollständig)
+⚠️ Einfache Textformatierung (fett, kursiv) — noch nicht implementiert
 
 ## 5. Popup-UI
-- Popup sollte etwa 90 % der Bildschirmhöhe einnehmen.
-- Oben ein „X“-Button, um das Popup zu schließen.
-- Optional: Zurück-/Speichern-Button im oberen Bereich.
+✅ Popup ~90 % Bildschirmhöhe (ModalBottomSheet)
+✅ „X"-Button zum Schließen
+✅ Stimmungs-Auswahl (5 Emojis) im Popup-Header
+✅ Wetter-Auswahl (5 Icons) im Popup-Header
+✅ Neue Seite hinzufügen / Seite löschen
 
-## 6. Authentifizierung (PIN / Fingerprint)
-- Beim Start der App:
-  - Abfrage eines PIN-Codes oder Fingerabdrucks.
-  - Nutzer kann in den Einstellungen wählen: PIN, Fingerprint oder „keine Authentifizierung“.
-- Verschlüsselte lokale Speicherung aller Tagebuchdaten.
+## 6. Authentifizierung
+✅ 4-stelliger PIN-Schutz
+✅ App sperrt sich sofort beim Verlassen (onStop)
+✅ PIN-Abfrage beim Zurückkehren zur App
+✅ PIN-Versuch-Limit: 5 Fehlversuche → 30 Sekunden Sperre
+✅ Haptic Feedback bei PIN-Eingabe
+✅ Countdown-Anzeige bei Sperre
+❌ Fingerabdruck-Entsperrung (entfernt — Stabilitätsprobleme)
 
 ## 7. Einstellungs-Bildschirm
-- Erstelle einen „Einstellungen“-Bildschirm.
-- Konfigurierbar:
-  - PIN festlegen/ändern/entfernen.
-  - Fingerprint-Entsperrung aktivieren/deaktivieren.
-  - WebDAV-Sync:
-    - WebDAV-Server-URL.
-    - Benutzername.
-    - Passwort (sicher gespeichert, z.B. via Android Keystore).
-    - Verschlüsselungspasswort/Passphrase für die Daten auf dem Server.
-  - Option: Sync ein/aus, manuell oder automatisch.
-  - Optional: Button „Jetzt synchronisieren“.
-- Thema:
-  - Unterstützung für **Light‑Thema** und **Dark‑Thema**.
-  - Nutzer kann in den Einstellungen wählen:
-    - „Systemstandard“ (je nach System‑Thema),
-    - „immer hell“,
-    - „immer dunkel“.
+✅ PIN festlegen / ändern / entfernen
+✅ Akzentfarbe wählen (6 Farben: Lila, Blau, Grün, Orange, Rosa, Türkis)
+✅ Light / Dark / Systemstandard Theme
+✅ WebDAV-Konfiguration (URL, Benutzername, Passwort, Verschlüsselungs-Passphrase)
+✅ Sync ein/aus + manueller Sync-Button
+✅ Tägliche Erinnerung mit konfigurierbarer Uhrzeit
+✅ Berechtigungen direkt in der App verwalten (Benachrichtigungen, Fotos)
+💡 Kalender-Icon-Ansicht: Stimmung ODER Wetter als Tag-Icon anzeigen
+💡 Perioden-Tracking aktivieren / deaktivieren
 
 ## 8. WebDAV-Synchronisation
-- Synchronisiere die Tagebuchdaten mit einem WebDAV-Server.
-- Unterstützung für:
-  - Direkte Sync (wenn Netzwerk verfügbar).
-  - Verzögerte/Background-Sync (wenn WLAN verfügbar).
-- Zweirichtungs-Sync:
-  - Änderungen auf Gerät und Server werden zusammengeführt.
-  - Konflikte sinnvoll behandeln (z.B. neuer Zeitstempel bevorzugt).
-- Alle Daten auf dem WebDAV-Server müssen:
-  - Clientseitig verschlüsselt werden (nur verschlüsselte Datei wird hochgeladen).
-  - Verschlüsselungsschlüssel aus dem Passwort/Passphrase des Nutzers abgeleitet.
-- Offline-Verwendung:
-  - Tagebuch auch ohne Verbindung nutzbar.
-  - Ausstehende Sync werden nach Verbinden automatisch durchgeführt.
+✅ Bidirektionale Sync
+✅ Clientseitige Verschlüsselung (PBKDF2 + AES-GCM)
+✅ Offline-first (Tagebuch ohne Verbindung nutzbar)
+✅ Ausstehende Syncs werden automatisch durchgeführt
+✅ Konflikte: neuerer Zeitstempel gewinnt
+⚠️ Background-Sync bei WLAN (WorkManager vorhanden, aber nicht vollständig getestet)
 
-## 9. Datenmodell (high-level)
-- Speichere:
-  - Ein „Tag“-Eintrag mit mehreren Seiten.
-  - Pro Seite: Text, Bilder, Emojis mit Position/Größe/Drehung.
-- Serialisiere die Daten (z.B. JSON oder benutzerdefinierter Format) und verschlüssele sie bevor sie auf WebDAV gespeichert werden.
-- Lokaler Cache für schnellen Zugriff und Offline‑Betrieb.
+## 9. Datenmodell
+✅ DiaryDay (Datum, Stimmung, Wetter)
+✅ DiaryPage (Text, Medien-Canvas als JSON)
+✅ PageMedia (Position, Größe, Rotation pro Element)
+✅ AES-256-SQLCipher für lokale DB
+✅ Serialisierung via kotlinx.serialization
 
-## 10. Teilen von Seiten als Screenshot
-- Jede Seite im Popup soll als Screenshot geteilt werden können.
-- Funktion:
-  - Ein Button „Teilen“ / „Seite teilen“ im Popup.
-  - App rendert die aktuelle Seite als vollständiges Bild (inklusive Hintergrund, Text, Bilder, Emojis).
-  - Nutzer wählt aus, wohin geteilt werden soll (z.B. WhatsApp, Threema, Signal, E‑Mail, etc.).
-- Option:
-  - Schwarzes/weißes oder weniger „privat einsehbare“ Version erzeugen (z.B. Text leicht verfremdet, wenn gewünscht).
-- Sicherheit:
-  - Nur der aktuelle Inhalt der sichtbaren Seite wird exportiert, nicht die verschlüsselten Backend‑Daten.
+## 10. Teilen von Seiten
+⚠️ PDF-Export des aktuellen Monats (teilen via Intent)
+❌ Screenshot einer einzelnen Seite als Bild teilen
+❌ „Öffentlichere" Version (verfremdet) noch nicht implementiert
 
 ## 11. Technische Anforderungen
-- Zielplattform: **Android 15 und höhere Versionen**.
-- Empfohlene Technologie: Kotlin, vorzugsweise mit Jetpack Compose.
-- Moderne Android‑Architektur (z.B. ViewModels, Repository‑Pattern, Room oder eigenes Datenmodell).
-- Offline‑first‑Design, sauberer Code und gute Testbarkeit.
+✅ Android 15+, Kotlin, Jetpack Compose
+✅ MVVM + Repository-Pattern
+✅ Room + SQLCipher
+✅ Offline-first
+✅ Hilt Dependency Injection
 
-## 12. GitHub-Repo & Repo-Policy
-- Erstelle ein **privates GitHub‑Repository** für die App.
-- Quellcode soll **nicht öffentlich** zugänglich sein.
-- Optional: später können Docs/Readme oder Teile als öffentliches „Demo“‑Projekt entstehen, aber Code bleibt privat.
+## 12. GitHub-Repo
+✅ Privates Repository: github.com/pbrockt/Tagebuch-App
+✅ Automatischer CI/CD-Build via GitHub Actions
+✅ Konsistenter Signing-Keystore (gecacht im CI)
 
-## 13. Optional / Nice-to-have
-- Suchfunktion (nach Datum oder Text‑Teil).
-- Backup/Restore über WebDAV.
-- Export-Option (z.B. zu PDF oder Plain‑Text).
-- Option, gesicherte bzw. „öffentlichere“ Version der zu teilenden Seite zu erzeugen.
+## 13. Umgesetzte Extras (nicht in Original-ToDo)
+✅ Volltext-Suche über alle Einträge
+✅ Statistik-Screen (Streak, Wörter, Monats-Chart, Stimmungsverteilung)
+✅ Stimmungs-Tracking mit 5 Stufen
+✅ Wetter-Tracking mit 5 Optionen
+✅ Tägliche Erinnerungs-Benachrichtigung (WorkManager)
+✅ PDF-Export mit Stimmung & Wetter
+✅ 6 Farbthemen (Akzentfarben)
+✅ Florale Hintergrund-Dekoration (PIN-Screen)
+✅ Versionsnummer im Kalender (rechts unten)
+✅ README.md mit App-Beschreibung, Icon und Changelog
+
+## 14. Neue Ideen / Backlog
+💡 Geburtstage aus Kontakten im Kalender anzeigen
+   - READ_CONTACTS-Berechtigung anfordern
+   - Geburtstage als Icon/Label auf Kalender-Tagen anzeigen
+   - Opt-in, da private Daten
+💡 Perioden-Tracking
+   - Ähnlich wie Stimmung: optionales Tracking-Feld pro Tag
+   - In Einstellungen aktivierbar/deaktivierbar (Privacy)
+   - Kalender-Anzeige mit eigenem Icon/Farbe
+   - Zyklusberechnung (nächste Periode schätzen)
+💡 Kalender-Icon-Ansicht umschalten (Einstellungs-Toggle)
+   - Wählen: Wetter-Icon ODER Stimmungs-Farbe auf Kalender-Tagen
+   - Oder: beides kombiniert (Wetter + Stimmungs-Hintergrundfarbe)
+💡 Fingerabdruck-Auth erneut versuchen (stabiler implementieren)
+💡 Fett / Kursiv Formatierung im Texteditor
+💡 Schriftgröße einstellbar
+💡 Seite als Bild teilen (Screenshot einer Canvas-Seite)
+💡 „An diesem Tag vor X Jahren" — alte Einträge beim Öffnen eines Datums zeigen
+💡 PIN-Versuch-Limit konfigurierbar (Anzahl + Wartezeit)
+💡 Seitenfarbe pro Seite wählbar (8 Hintergrundfarben)
