@@ -15,13 +15,10 @@ sealed class Screen(val route: String) {
 }
 
 @Composable
-fun AppNavigation() {
+fun AppNavigation(onThemeChanged: () -> Unit = {}) {
     val navController = rememberNavController()
 
-    NavHost(
-        navController = navController,
-        startDestination = Screen.Auth.route
-    ) {
+    NavHost(navController = navController, startDestination = Screen.Auth.route) {
         composable(Screen.Auth.route) {
             AuthScreen(
                 onAuthenticated = {
@@ -33,14 +30,15 @@ fun AppNavigation() {
         }
         composable(Screen.Calendar.route) {
             CalendarScreen(
-                onNavigateToSettings = {
-                    navController.navigate(Screen.Settings.route)
-                }
+                onNavigateToSettings = { navController.navigate(Screen.Settings.route) }
             )
         }
         composable(Screen.Settings.route) {
             SettingsScreen(
-                onNavigateBack = { navController.popBackStack() }
+                onNavigateBack = {
+                    onThemeChanged()
+                    navController.popBackStack()
+                }
             )
         }
     }
