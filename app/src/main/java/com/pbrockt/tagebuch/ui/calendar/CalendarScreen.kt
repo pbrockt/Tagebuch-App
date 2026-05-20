@@ -38,6 +38,7 @@ fun CalendarScreen(
     onNavigateToSettings: () -> Unit,
     onNavigateToSearch: () -> Unit,
     onNavigateToStats: () -> Unit,
+    calendarIconMode: String = "mood",
     viewModel: CalendarViewModel = hiltViewModel()
 ) {
     val currentMonth by viewModel.currentMonth.collectAsState()
@@ -98,6 +99,7 @@ fun CalendarScreen(
                     moodMap = allDays.associate { it.date to (it.mood ?: "") },
                     weatherMap = allDays.associate { it.date to (it.weather ?: "") },
                     selectedDate = selectedDate,
+                    calendarIconMode = calendarIconMode,
                     onDayClick = viewModel::selectDate
                 )
             }
@@ -163,6 +165,7 @@ private fun CalendarGrid(
     moodMap: Map<String, String>,
     weatherMap: Map<String, String>,
     selectedDate: LocalDate?,
+    calendarIconMode: String,
     onDayClick: (LocalDate) -> Unit
 ) {
     val startOffset = (month.atDay(1).dayOfWeek.value - DayOfWeek.MONDAY.value + 7) % 7
@@ -186,6 +189,8 @@ private fun CalendarGrid(
                             weather = weatherMap[dateStr],
                             isSelected = date == selectedDate,
                             isToday = date == LocalDate.now(),
+                            showMood = calendarIconMode != "weather",
+                            showWeather = calendarIconMode != "mood",
                             onClick = { onDayClick(date) },
                             modifier = Modifier.weight(1f)
                         )
@@ -205,10 +210,12 @@ private fun DayCell(
     weather: String?,
     isSelected: Boolean,
     isToday: Boolean,
+    showMood: Boolean,
+    showWeather: Boolean,
     onClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    val moodColor = moodColorMap[mood]
+    val moodColor = if (showMood) moodColorMap[mood] else null
     val bgColor = when {
         isSelected -> MaterialTheme.colorScheme.primary
         isToday -> MaterialTheme.colorScheme.primaryContainer
@@ -221,10 +228,10 @@ private fun DayCell(
         contentAlignment = Alignment.Center
     ) {
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
-            val weatherEmoji = when (weather) {
+            val weatherEmoji = if (showWeather) when (weather) {
                 "sunny" -> "☀"; "cloudy" -> "☁"; "rainy" -> "🌧"
                 "snowy" -> "❄"; "stormy" -> "⛈"; else -> null
-            }
+            } else null
             if (weatherEmoji != null) {
                 Text(weatherEmoji, style = MaterialTheme.typography.labelSmall.copy(
                     fontSize = androidx.compose.ui.unit.TextUnit(8f, androidx.compose.ui.unit.TextUnitType.Sp)))
