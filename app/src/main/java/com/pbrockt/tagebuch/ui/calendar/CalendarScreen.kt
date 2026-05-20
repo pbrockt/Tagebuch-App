@@ -18,6 +18,9 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.core.content.FileProvider
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
+import androidx.lifecycle.compose.LocalLifecycleOwner
 import java.time.DayOfWeek
 import java.time.LocalDate
 import java.time.YearMonth
@@ -38,7 +41,7 @@ fun CalendarScreen(
     onNavigateToSettings: () -> Unit,
     onNavigateToSearch: () -> Unit,
     onNavigateToStats: () -> Unit,
-    calendarIconMode: String = "mood",
+    calendarIconMode: String = "mood",  // Fallback, primär aus ViewModel
     viewModel: CalendarViewModel = hiltViewModel()
 ) {
     val currentMonth by viewModel.currentMonth.collectAsState()
@@ -46,7 +49,19 @@ fun CalendarScreen(
     val allDays by viewModel.allDays.collectAsState()
     val selectedDate by viewModel.selectedDate.collectAsState()
     val exportedFile by viewModel.exportedFile.collectAsState()
+    // Liest direkt aus ViewModel (SecurePrefs), refresht bei ON_RESUME
+    val iconMode by viewModel.calendarIconMode.collectAsState()
     val context = LocalContext.current
+
+    // Wenn Screen wieder sichtbar wird (z.B. nach Rückkehr von Settings), Einstellungen neu lesen
+    val lifecycleOwner = LocalLifecycleOwner.current
+    DisposableEffect(lifecycleOwner) {
+        val observer = LifecycleEventObserver { _, event ->
+            if (event == Lifecycle.Event.ON_RESUME) viewModel.refreshSettings()
+        }
+        lifecycleOwner.lifecycle.addObserver(observer)
+        onDispose { lifecycleOwner.lifecycle.removeObserver(observer) }
+    }
 
     val monthEntryCount = datesWithEntries.count { it.startsWith(currentMonth.toString()) }
 
@@ -99,7 +114,7 @@ fun CalendarScreen(
                     moodMap = allDays.associate { it.date to (it.mood ?: "") },
                     weatherMap = allDays.associate { it.date to (it.weather ?: "") },
                     selectedDate = selectedDate,
-                    calendarIconMode = calendarIconMode,
+                    calendarIconMode = iconMode,
                     onDayClick = viewModel::selectDate
                 )
             }
