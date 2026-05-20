@@ -81,6 +81,7 @@ fun CalendarScreen(
             Column(
                 modifier = Modifier.fillMaxSize().padding(padding).padding(16.dp)
             ) {
+
                 MonthHeader(currentMonth, viewModel::previousMonth, viewModel::nextMonth)
                 Spacer(Modifier.height(8.dp))
                 WeekdayHeader()
@@ -94,6 +95,13 @@ fun CalendarScreen(
                     onDayClick = viewModel::selectDate
                 )
             }
+            // Version label bottom-right
+            Text(
+                "Version 0.1a",
+                modifier = Modifier.align(Alignment.BottomEnd).padding(8.dp),
+                style = MaterialTheme.typography.labelSmall,
+                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.35f)
+            )
         }
     }
 
