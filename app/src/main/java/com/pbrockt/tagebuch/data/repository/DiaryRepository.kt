@@ -12,19 +12,23 @@ import javax.inject.Singleton
 class DiaryRepository @Inject constructor(private val dao: DiaryDao) {
 
     fun getAllDates(): Flow<List<String>> = dao.getAllDates()
-
+    fun getAllDays(): Flow<List<DiaryDay>> = dao.getAllDays()
+    fun getAllPages(): Flow<List<DiaryPage>> = dao.getAllPages()
     fun getPagesForDay(date: String): Flow<List<DiaryPage>> = dao.getPagesForDay(date)
+    fun searchPages(query: String): Flow<List<DiaryPage>> = dao.searchPages(query)
 
     suspend fun getDayByDate(date: String): DiaryDay? = dao.getDayByDate(date)
 
+    suspend fun ensureDay(date: String): DiaryDay =
+        dao.getDayByDate(date) ?: DiaryDay(date = date).also { dao.upsertDay(it) }
+
     suspend fun createPage(date: String): DiaryPage {
-        val day = dao.getDayByDate(date) ?: DiaryDay(date = date).also { dao.upsertDay(it) }
-        val existingPages = dao.getUnsyncedPages().filter { it.dayDate == date }
-        val nextIndex = existingPages.size
+        ensureDay(date)
+        val pages = dao.getUnsyncedPages().filter { it.dayDate == date }
         val page = DiaryPage(
             id = UUID.randomUUID().toString(),
-            dayDate = day.date,
-            pageIndex = nextIndex
+            dayDate = date,
+            pageIndex = pages.size
         )
         dao.upsertPage(page)
         return page
@@ -34,12 +38,20 @@ class DiaryRepository @Inject constructor(private val dao: DiaryDao) {
         dao.upsertPage(page.copy(updatedAt = System.currentTimeMillis()))
     }
 
-    suspend fun deletePage(page: DiaryPage) {
-        dao.deletePage(page)
-    }
+    suspend fun deletePage(page: DiaryPage) = dao.deletePage(page)
 
     suspend fun deleteDay(date: String) {
         dao.deletePagesForDay(date)
         dao.getDayByDate(date)?.let { dao.deleteDay(it) }
+    }
+
+    suspend fun setMood(date: String, mood: String?) {
+        ensureDay(date)
+        dao.updateMood(date, mood)
+    }
+
+    suspend fun setWeather(date: String, weather: String?) {
+        ensureDay(date)
+        dao.updateWeather(date, weather)
     }
 }
