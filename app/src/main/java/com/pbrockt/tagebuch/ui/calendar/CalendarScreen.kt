@@ -18,7 +18,6 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.core.content.FileProvider
 import androidx.hilt.navigation.compose.hiltViewModel
-import com.pbrockt.tagebuch.ui.theme.FloralBackground
 import java.time.DayOfWeek
 import java.time.LocalDate
 import java.time.YearMonth
@@ -48,7 +47,8 @@ fun CalendarScreen(
     val exportedFile by viewModel.exportedFile.collectAsState()
     val context = LocalContext.current
 
-    // Share exported PDF when ready
+    val monthEntryCount = datesWithEntries.count { it.startsWith(currentMonth.toString()) }
+
     LaunchedEffect(exportedFile) {
         exportedFile?.let { file ->
             val uri = FileProvider.getUriForFile(context, "${context.packageName}.provider", file)
@@ -77,12 +77,18 @@ fun CalendarScreen(
         }
     ) { padding ->
         Box(modifier = Modifier.fillMaxSize()) {
-            FloralBackground()
             Column(
-                modifier = Modifier.fillMaxSize().padding(padding).padding(16.dp)
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(padding)
+                    .padding(16.dp)
             ) {
-
-                MonthHeader(currentMonth, viewModel::previousMonth, viewModel::nextMonth)
+                MonthHeader(
+                    month = currentMonth,
+                    entryCount = monthEntryCount,
+                    onPrevious = viewModel::previousMonth,
+                    onNext = viewModel::nextMonth
+                )
                 Spacer(Modifier.height(8.dp))
                 WeekdayHeader()
                 Spacer(Modifier.height(4.dp))
@@ -95,9 +101,8 @@ fun CalendarScreen(
                     onDayClick = viewModel::selectDate
                 )
             }
-            // Version label bottom-right
             Text(
-                "Version 0.1a",
+                "Version 0.1",
                 modifier = Modifier.align(Alignment.BottomEnd).padding(8.dp),
                 style = MaterialTheme.typography.labelSmall,
                 color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.35f)
@@ -111,11 +116,31 @@ fun CalendarScreen(
 }
 
 @Composable
-private fun MonthHeader(month: YearMonth, onPrevious: () -> Unit, onNext: () -> Unit) {
-    Row(Modifier.fillMaxWidth(), Arrangement.SpaceBetween, Alignment.CenterVertically) {
+private fun MonthHeader(
+    month: YearMonth,
+    entryCount: Int,
+    onPrevious: () -> Unit,
+    onNext: () -> Unit
+) {
+    Row(
+        Modifier.fillMaxWidth(),
+        Arrangement.SpaceBetween,
+        Alignment.CenterVertically
+    ) {
         IconButton(onClick = onPrevious) { Icon(Icons.Default.ChevronLeft, null) }
-        Text("${month.month.getDisplayName(TextStyle.FULL, Locale.GERMAN)} ${month.year}",
-            style = MaterialTheme.typography.titleLarge)
+        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+            Text(
+                "${month.month.getDisplayName(TextStyle.FULL, Locale.GERMAN)} ${month.year}",
+                style = MaterialTheme.typography.titleLarge
+            )
+            if (entryCount > 0) {
+                Text(
+                    "$entryCount Eintr${if (entryCount == 1) "ag" else "äge"}",
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.primary
+                )
+            }
+        }
         IconButton(onClick = onNext) { Icon(Icons.Default.ChevronRight, null) }
     }
 }
@@ -190,23 +215,22 @@ private fun DayCell(
         moodColor != null -> moodColor.copy(alpha = 0.25f)
         else -> MaterialTheme.colorScheme.surface.copy(alpha = 0.7f)
     }
-
     Box(
         modifier = modifier.aspectRatio(1f).clip(CircleShape)
             .background(bgColor).clickable(onClick = onClick),
         contentAlignment = Alignment.Center
     ) {
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
-            // Weather emoji (tiny, top)
             val weatherEmoji = when (weather) {
                 "sunny" -> "☀"; "cloudy" -> "☁"; "rainy" -> "🌧"
                 "snowy" -> "❄"; "stormy" -> "⛈"; else -> null
             }
             if (weatherEmoji != null) {
-                Text(weatherEmoji, style = MaterialTheme.typography.labelSmall.copy(fontSize = androidx.compose.ui.unit.TextUnit(8f, androidx.compose.ui.unit.TextUnitType.Sp)))
+                Text(weatherEmoji, style = MaterialTheme.typography.labelSmall.copy(
+                    fontSize = androidx.compose.ui.unit.TextUnit(8f, androidx.compose.ui.unit.TextUnitType.Sp)))
             }
             Text(
-                text = day.toString(),
+                day.toString(),
                 color = if (isSelected) MaterialTheme.colorScheme.onPrimary
                 else if (isToday) MaterialTheme.colorScheme.onPrimaryContainer
                 else MaterialTheme.colorScheme.onSurface,
@@ -214,7 +238,9 @@ private fun DayCell(
             )
             if (hasEntry) {
                 Box(Modifier.size(3.dp).clip(CircleShape).background(
-                    if (isSelected) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.primary))
+                    if (isSelected) MaterialTheme.colorScheme.onPrimary
+                    else MaterialTheme.colorScheme.primary
+                ))
             }
         }
     }
