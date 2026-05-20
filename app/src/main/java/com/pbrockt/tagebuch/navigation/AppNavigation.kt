@@ -17,7 +17,10 @@ sealed class Screen(val route: String) {
 }
 
 @Composable
-fun AppNavigation(onThemeChanged: () -> Unit = {}) {
+fun AppNavigation(
+    onThemeChanged: () -> Unit = {},
+    calendarIconMode: String = "mood"
+) {
     val navController = rememberNavController()
 
     NavHost(navController = navController, startDestination = Screen.Calendar.route) {
@@ -25,7 +28,8 @@ fun AppNavigation(onThemeChanged: () -> Unit = {}) {
             CalendarScreen(
                 onNavigateToSettings = { navController.navigate(Screen.Settings.route) },
                 onNavigateToSearch = { navController.navigate(Screen.Search.route) },
-                onNavigateToStats = { navController.navigate(Screen.Stats.route) }
+                onNavigateToStats = { navController.navigate(Screen.Stats.route) },
+                calendarIconMode = calendarIconMode
             )
         }
         composable(Screen.Settings.route) {
