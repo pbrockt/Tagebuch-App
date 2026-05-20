@@ -8,7 +8,6 @@ import kotlinx.coroutines.flow.Flow
 @Dao
 interface DiaryDao {
 
-    // DiaryDay
     @Query("SELECT * FROM diary_days ORDER BY date DESC")
     fun getAllDays(): Flow<List<DiaryDay>>
 
@@ -24,9 +23,20 @@ interface DiaryDao {
     @Delete
     suspend fun deleteDay(day: DiaryDay)
 
-    // DiaryPage
+    @Query("UPDATE diary_days SET mood = :mood, updatedAt = :ts WHERE date = :date")
+    suspend fun updateMood(date: String, mood: String?, ts: Long = System.currentTimeMillis())
+
+    @Query("UPDATE diary_days SET weather = :weather, updatedAt = :ts WHERE date = :date")
+    suspend fun updateWeather(date: String, weather: String?, ts: Long = System.currentTimeMillis())
+
     @Query("SELECT * FROM diary_pages WHERE dayDate = :date ORDER BY pageIndex ASC")
     fun getPagesForDay(date: String): Flow<List<DiaryPage>>
+
+    @Query("SELECT * FROM diary_pages ORDER BY updatedAt DESC")
+    fun getAllPages(): Flow<List<DiaryPage>>
+
+    @Query("SELECT * FROM diary_pages WHERE content LIKE '%' || :query || '%' ORDER BY updatedAt DESC")
+    fun searchPages(query: String): Flow<List<DiaryPage>>
 
     @Query("SELECT * FROM diary_pages WHERE id = :id LIMIT 1")
     suspend fun getPageById(id: String): DiaryPage?
