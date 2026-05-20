@@ -4,7 +4,9 @@ import androidx.room.Entity
 import androidx.room.ForeignKey
 import androidx.room.Index
 import androidx.room.PrimaryKey
+import kotlinx.serialization.Serializable
 
+@Serializable
 @Entity(
     tableName = "diary_pages",
     foreignKeys = [ForeignKey(
@@ -19,8 +21,8 @@ data class DiaryPage(
     @PrimaryKey val id: String,
     val dayDate: String,
     val pageIndex: Int = 0,
-    val content: String = "",      // Rich-Text als JSON
-    val mediaJson: String = "[]",  // serialisierte List<PageMedia>
+    val content: String = "",
+    val mediaJson: String = "[]",
     val createdAt: Long = System.currentTimeMillis(),
     val updatedAt: Long = System.currentTimeMillis(),
     val syncedAt: Long? = null
