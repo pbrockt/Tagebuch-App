@@ -7,7 +7,6 @@ import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.hilt.navigation.compose.hiltViewModel
 import com.pbrockt.tagebuch.navigation.AppNavigation
 import com.pbrockt.tagebuch.ui.auth.AuthScreen
 import com.pbrockt.tagebuch.ui.theme.TagebuchTheme
@@ -31,13 +30,17 @@ class MainActivity : ComponentActivity() {
         setContent {
             val themeChoice by mainViewModel.themeChoice.collectAsState()
             val accentColor by mainViewModel.accentColor.collectAsState()
+            val calendarIconMode by mainViewModel.calendarIconMode.collectAsState()
             val isLocked by appLockManager.isLocked.collectAsState()
 
             TagebuchTheme(themeChoice = themeChoice, accentColor = accentColor) {
                 if (isLocked) {
                     AuthScreen(onAuthenticated = { appLockManager.unlockApp() })
                 } else {
-                    AppNavigation(onThemeChanged = { mainViewModel.refresh() })
+                    AppNavigation(
+                        onThemeChanged = { mainViewModel.refresh() },
+                        calendarIconMode = calendarIconMode
+                    )
                 }
             }
         }
