@@ -1,5 +1,6 @@
 package com.pbrockt.tagebuch.ui.editor
 
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
@@ -9,6 +10,7 @@ import androidx.compose.material.icons.filled.Image
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import com.pbrockt.tagebuch.data.model.DiaryPage
 
@@ -22,7 +24,6 @@ fun EntryEditorScreen(
     var showEmojiPicker by remember { mutableStateOf(false) }
 
     Column(modifier = modifier.padding(horizontal = 16.dp)) {
-        // Toolbar
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.End
@@ -30,7 +31,7 @@ fun EntryEditorScreen(
             IconButton(onClick = { showEmojiPicker = !showEmojiPicker }) {
                 Icon(Icons.Default.EmojiEmotions, contentDescription = "Emoji")
             }
-            IconButton(onClick = { /* Bildauswahl — TODO: ActivityResultLauncher */ }) {
+            IconButton(onClick = { /* Bildauswahl via ActivityResultLauncher */ }) {
                 Icon(Icons.Default.Image, contentDescription = "Bild einfügen")
             }
         }
@@ -38,7 +39,6 @@ fun EntryEditorScreen(
         HorizontalDivider()
         Spacer(Modifier.height(8.dp))
 
-        // Text Editor
         OutlinedTextField(
             value = text,
             onValueChange = { newText ->
@@ -51,8 +51,8 @@ fun EntryEditorScreen(
                 .verticalScroll(rememberScrollState()),
             placeholder = { Text("Schreib deinen Eintrag...") },
             colors = OutlinedTextFieldDefaults.colors(
-                focusedBorderColor = androidx.compose.ui.graphics.Color.Transparent,
-                unfocusedBorderColor = androidx.compose.ui.graphics.Color.Transparent
+                focusedBorderColor = Color.Transparent,
+                unfocusedBorderColor = Color.Transparent
             ),
             textStyle = MaterialTheme.typography.bodyLarge
         )
@@ -71,13 +71,16 @@ fun EntryEditorScreen(
 
 @Composable
 private fun EmojiPickerRow(onEmojiSelected: (String) -> Unit) {
-    val emojis = listOf("😊", "😢", "😍", "😎", "🥳", "😴", "🤔", "😤", "❤️", "⭐", "🌟", "🔥", "🎉", "🌈", "☀️", "🌙")
+    val emojis = listOf(
+        "😊", "😢", "😍", "😎", "🥳", "😴", "🤔", "😤",
+        "❤️", "⭐", "🌟", "🔥", "🎉", "🌈", "☀️", "🌙"
+    )
     Card(modifier = Modifier.fillMaxWidth()) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(8.dp)
-                .horizontalScroll(rememberScrollState()),
+                .horizontalScroll(rememberScrollState())
+                .padding(8.dp),
             horizontalArrangement = Arrangement.spacedBy(4.dp)
         ) {
             emojis.forEach { emoji ->
@@ -88,7 +91,3 @@ private fun EmojiPickerRow(onEmojiSelected: (String) -> Unit) {
         }
     }
 }
-
-@Composable
-private fun Modifier.horizontalScroll(state: androidx.compose.foundation.ScrollState) =
-    this.then(androidx.compose.foundation.horizontalScroll(state))
