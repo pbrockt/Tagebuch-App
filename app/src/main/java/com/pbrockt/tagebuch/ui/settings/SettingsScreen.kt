@@ -9,10 +9,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
-import androidx.compose.material.icons.filled.Check
-import androidx.compose.material.icons.filled.Visibility
-import androidx.compose.material.icons.filled.VisibilityOff
+import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -44,6 +41,9 @@ fun SettingsScreen(
     val themeChoice by viewModel.themeChoice.collectAsState()
     val accentColor by viewModel.accentColor.collectAsState()
     val syncState by viewModel.syncState.collectAsState()
+    val reminderEnabled by viewModel.reminderEnabled.collectAsState()
+    val reminderHour by viewModel.reminderHour.collectAsState()
+    val reminderMinute by viewModel.reminderMinute.collectAsState()
 
     var newPin by remember { mutableStateOf("") }
     var showPinInput by remember { mutableStateOf(false) }
@@ -52,31 +52,26 @@ fun SettingsScreen(
     var webDavPassInput by remember(webDavPassword) { mutableStateOf(webDavPassword) }
     var webDavEncPassInput by remember(webDavEncPass) { mutableStateOf(webDavEncPass) }
     var passVisible by remember { mutableStateOf(false) }
+    var reminderHourInput by remember(reminderHour) { mutableStateOf(reminderHour.toString()) }
+    var reminderMinuteInput by remember(reminderMinute) { mutableStateOf(reminderMinute.toString().padStart(2, '0')) }
 
     Scaffold(
         topBar = {
             TopAppBar(
                 title = { Text("Einstellungen") },
-                navigationIcon = {
-                    IconButton(onClick = onNavigateBack) {
-                        Icon(Icons.Default.ArrowBack, contentDescription = "Zurück")
-                    }
-                }
+                navigationIcon = { IconButton(onClick = onNavigateBack) { Icon(Icons.Default.ArrowBack, null) } }
             )
         }
     ) { padding ->
         Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(padding)
-                .verticalScroll(rememberScrollState())
-                .padding(16.dp),
+            modifier = Modifier.fillMaxSize().padding(padding)
+                .verticalScroll(rememberScrollState()).padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
             // --- AUTH ---
             SectionTitle("Authentifizierung")
             if (authMethod != SecurePrefs.AUTH_NONE) {
-                OutlinedButton(onClick = { viewModel.clearPin() }, modifier = Modifier.fillMaxWidth()) {
+                OutlinedButton(onClick = { viewModel.clearPin() }, Modifier.fillMaxWidth()) {
                     Text("Keine Authentifizierung")
                 }
             }
@@ -87,95 +82,55 @@ fun SettingsScreen(
                     label = { Text("Neuer PIN (4 Stellen)") },
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.NumberPassword),
                     visualTransformation = PasswordVisualTransformation(),
-                    modifier = Modifier.fillMaxWidth(),
-                    singleLine = true
+                    modifier = Modifier.fillMaxWidth(), singleLine = true
                 )
                 Button(
-                    onClick = {
-                        if (newPin.length == 4) {
-                            viewModel.setPin(newPin)
-                            newPin = ""
-                            showPinInput = false
-                        }
-                    },
-                    enabled = newPin.length == 4,
-                    modifier = Modifier.fillMaxWidth()
+                    onClick = { if (newPin.length == 4) { viewModel.setPin(newPin); newPin = ""; showPinInput = false } },
+                    enabled = newPin.length == 4, modifier = Modifier.fillMaxWidth()
                 ) { Text("PIN speichern") }
             } else {
-                OutlinedButton(
-                    onClick = { showPinInput = true },
-                    modifier = Modifier.fillMaxWidth()
-                ) { Text(if (authMethod == SecurePrefs.AUTH_PIN) "PIN ändern" else "4-stelligen PIN festlegen") }
+                OutlinedButton(onClick = { showPinInput = true }, Modifier.fillMaxWidth()) {
+                    Text(if (authMethod == SecurePrefs.AUTH_PIN) "PIN ändern" else "4-stelligen PIN festlegen")
+                }
             }
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Text("Fingerabdruck aktivieren")
+            Row(Modifier.fillMaxWidth(), Arrangement.SpaceBetween, Alignment.CenterVertically) {
+                Text("Fingerabdruck")
                 Switch(checked = biometricEnabled, onCheckedChange = { viewModel.setBiometricEnabled(it) })
             }
 
             HorizontalDivider()
 
-            // --- THEME ---
+            // --- DESIGN ---
             SectionTitle("Design")
-
-            // Light/Dark
-            val themes = listOf(
-                SecurePrefs.THEME_SYSTEM to "Systemstandard",
-                SecurePrefs.THEME_LIGHT to "Immer hell",
-                SecurePrefs.THEME_DARK to "Immer dunkel"
-            )
+            val themes = listOf(SecurePrefs.THEME_SYSTEM to "Systemstandard",
+                SecurePrefs.THEME_LIGHT to "Immer hell", SecurePrefs.THEME_DARK to "Immer dunkel")
             themes.forEach { (key, label) ->
-                Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+                Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
                     RadioButton(selected = themeChoice == key, onClick = { viewModel.setTheme(key) })
-                    Spacer(Modifier.width(8.dp))
-                    Text(label)
+                    Spacer(Modifier.width(8.dp)); Text(label)
                 }
             }
-
             Spacer(Modifier.height(4.dp))
             Text("Akzentfarbe", style = MaterialTheme.typography.labelLarge)
             Spacer(Modifier.height(8.dp))
-
-            // Color swatches
             val colorOptions = listOf(
-                SecurePrefs.ACCENT_PURPLE to "Lila",
-                SecurePrefs.ACCENT_BLUE to "Blau",
-                SecurePrefs.ACCENT_GREEN to "Grün",
-                SecurePrefs.ACCENT_ORANGE to "Orange",
-                SecurePrefs.ACCENT_PINK to "Rosa",
-                SecurePrefs.ACCENT_TEAL to "Türkis"
+                SecurePrefs.ACCENT_PURPLE to "Lila", SecurePrefs.ACCENT_BLUE to "Blau",
+                SecurePrefs.ACCENT_GREEN to "Grün", SecurePrefs.ACCENT_ORANGE to "Orange",
+                SecurePrefs.ACCENT_PINK to "Rosa", SecurePrefs.ACCENT_TEAL to "Türkis"
             )
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(12.dp)
-            ) {
+            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                 colorOptions.forEach { (key, label) ->
                     val isDark = themeChoice == SecurePrefs.THEME_DARK
                     val swatchColor = (accentMap[key]?.let { if (isDark) it.dark else it.light }
                         ?: accentMap[SecurePrefs.ACCENT_PURPLE]!!.light).primary
                     val selected = accentColor == key
-
-                    Column(
-                        horizontalAlignment = Alignment.CenterHorizontally,
-                        modifier = Modifier.weight(1f)
-                    ) {
+                    Column(Modifier.weight(1f), horizontalAlignment = Alignment.CenterHorizontally) {
                         Box(
-                            modifier = Modifier
-                                .size(36.dp)
-                                .clip(CircleShape)
-                                .background(swatchColor)
-                                .then(
-                                    if (selected) Modifier.border(3.dp, MaterialTheme.colorScheme.onSurface, CircleShape)
-                                    else Modifier
-                                )
+                            Modifier.size(36.dp).clip(CircleShape).background(swatchColor)
+                                .then(if (selected) Modifier.border(3.dp, MaterialTheme.colorScheme.onSurface, CircleShape) else Modifier)
                                 .clickable { viewModel.setAccentColor(key) },
                             contentAlignment = Alignment.Center
-                        ) {
-                            if (selected) Icon(Icons.Default.Check, null, tint = Color.White, modifier = Modifier.size(16.dp))
-                        }
+                        ) { if (selected) Icon(Icons.Default.Check, null, tint = Color.White, modifier = Modifier.size(16.dp)) }
                         Spacer(Modifier.height(4.dp))
                         Text(label, style = MaterialTheme.typography.labelSmall)
                     }
@@ -184,40 +139,65 @@ fun SettingsScreen(
 
             HorizontalDivider()
 
+            // --- ERINNERUNGEN ---
+            SectionTitle("Erinnerungen")
+            Row(Modifier.fillMaxWidth(), Arrangement.SpaceBetween, Alignment.CenterVertically) {
+                Text("Tägliche Erinnerung")
+                Switch(checked = reminderEnabled, onCheckedChange = { viewModel.setReminderEnabled(it) })
+            }
+            if (reminderEnabled) {
+                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    OutlinedTextField(
+                        value = reminderHourInput,
+                        onValueChange = { if (it.length <= 2) reminderHourInput = it },
+                        label = { Text("Stunde (0-23)") },
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                        modifier = Modifier.weight(1f), singleLine = true
+                    )
+                    OutlinedTextField(
+                        value = reminderMinuteInput,
+                        onValueChange = { if (it.length <= 2) reminderMinuteInput = it },
+                        label = { Text("Minute (0-59)") },
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                        modifier = Modifier.weight(1f), singleLine = true
+                    )
+                }
+                Button(
+                    onClick = {
+                        val h = reminderHourInput.toIntOrNull()?.coerceIn(0, 23) ?: 21
+                        val m = reminderMinuteInput.toIntOrNull()?.coerceIn(0, 59) ?: 0
+                        viewModel.saveReminderTime(h, m)
+                    },
+                    modifier = Modifier.fillMaxWidth()
+                ) { Text("Erinnerungszeit speichern") }
+            }
+
+            HorizontalDivider()
+
             // --- WEBDAV ---
             SectionTitle("WebDAV-Synchronisation")
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
+            Row(Modifier.fillMaxWidth(), Arrangement.SpaceBetween, Alignment.CenterVertically) {
                 Text("Sync aktiviert")
                 Switch(checked = syncEnabled, onCheckedChange = { viewModel.setSyncEnabled(it) })
             }
             OutlinedTextField(value = webDavUrlInput, onValueChange = { webDavUrlInput = it },
-                label = { Text("WebDAV Server URL") }, modifier = Modifier.fillMaxWidth(), singleLine = true)
+                label = { Text("Server URL") }, modifier = Modifier.fillMaxWidth(), singleLine = true)
             OutlinedTextField(value = webDavUserInput, onValueChange = { webDavUserInput = it },
                 label = { Text("Benutzername") }, modifier = Modifier.fillMaxWidth(), singleLine = true)
-            OutlinedTextField(
-                value = webDavPassInput, onValueChange = { webDavPassInput = it },
+            OutlinedTextField(value = webDavPassInput, onValueChange = { webDavPassInput = it },
                 label = { Text("Passwort") }, modifier = Modifier.fillMaxWidth(), singleLine = true,
                 visualTransformation = if (passVisible) VisualTransformation.None else PasswordVisualTransformation(),
                 trailingIcon = {
                     IconButton(onClick = { passVisible = !passVisible }) {
                         Icon(if (passVisible) Icons.Default.VisibilityOff else Icons.Default.Visibility, null)
                     }
-                }
-            )
+                })
             OutlinedTextField(value = webDavEncPassInput, onValueChange = { webDavEncPassInput = it },
                 label = { Text("Verschlüsselungs-Passphrase") }, modifier = Modifier.fillMaxWidth(),
                 singleLine = true, visualTransformation = PasswordVisualTransformation())
-            Button(
-                onClick = { viewModel.saveWebDavConfig(webDavUrlInput, webDavUserInput, webDavPassInput, webDavEncPassInput) },
-                modifier = Modifier.fillMaxWidth()
-            ) { Text("WebDAV speichern") }
-            OutlinedButton(onClick = { viewModel.syncNow() }, modifier = Modifier.fillMaxWidth()) {
-                Text("Jetzt synchronisieren")
-            }
+            Button(onClick = { viewModel.saveWebDavConfig(webDavUrlInput, webDavUserInput, webDavPassInput, webDavEncPassInput) },
+                modifier = Modifier.fillMaxWidth()) { Text("WebDAV speichern") }
+            OutlinedButton(onClick = { viewModel.syncNow() }, Modifier.fillMaxWidth()) { Text("Jetzt synchronisieren") }
             when (syncState) {
                 is SyncResult.Success -> Text("Sync erfolgreich", color = MaterialTheme.colorScheme.primary)
                 is SyncResult.Error -> Text("Fehler: ${(syncState as SyncResult.Error).message}", color = MaterialTheme.colorScheme.error)
