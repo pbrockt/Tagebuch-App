@@ -47,6 +47,7 @@ class SettingsViewModel @Inject constructor(
     val reminderMinute: StateFlow<Int> = _reminderMinute
 
     val syncState = syncRepo.syncState
+    val testState = syncRepo.testState
 
     fun setPin(pin: String) {
         prefs.pinHash = sha256(pin); prefs.authMethod = SecurePrefs.AUTH_PIN
@@ -77,6 +78,9 @@ class SettingsViewModel @Inject constructor(
         if (prefs.reminderEnabled) ReminderWorker.schedule(context, hour, minute)
     }
     fun syncNow() { viewModelScope.launch { syncRepo.triggerSync() } }
+    fun testConnection(url: String, user: String, pass: String) {
+        viewModelScope.launch { syncRepo.testConnection(url, user, pass) }
+    }
 
     private fun sha256(input: String): String {
         val bytes = MessageDigest.getInstance("SHA-256").digest(input.toByteArray())
