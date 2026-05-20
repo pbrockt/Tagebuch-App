@@ -17,6 +17,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.pbrockt.tagebuch.ui.theme.FloralBackground
 import java.time.DayOfWeek
 import java.time.LocalDate
 import java.time.YearMonth
@@ -48,26 +49,29 @@ fun CalendarScreen(
             )
         }
     ) { padding ->
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(padding)
-                .padding(16.dp)
-        ) {
-            MonthHeader(
-                month = currentMonth,
-                onPrevious = viewModel::previousMonth,
-                onNext = viewModel::nextMonth
-            )
-            Spacer(Modifier.height(8.dp))
-            WeekdayHeader()
-            Spacer(Modifier.height(4.dp))
-            CalendarGrid(
-                month = currentMonth,
-                datesWithEntries = datesWithEntries,
-                selectedDate = selectedDate,
-                onDayClick = viewModel::selectDate
-            )
+        Box(modifier = Modifier.fillMaxSize()) {
+            FloralBackground()
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(padding)
+                    .padding(16.dp)
+            ) {
+                MonthHeader(
+                    month = currentMonth,
+                    onPrevious = viewModel::previousMonth,
+                    onNext = viewModel::nextMonth
+                )
+                Spacer(Modifier.height(8.dp))
+                WeekdayHeader()
+                Spacer(Modifier.height(4.dp))
+                CalendarGrid(
+                    month = currentMonth,
+                    datesWithEntries = datesWithEntries,
+                    selectedDate = selectedDate,
+                    onDayClick = viewModel::selectDate
+                )
+            }
         }
     }
 
@@ -81,41 +85,27 @@ fun CalendarScreen(
 }
 
 @Composable
-private fun MonthHeader(
-    month: YearMonth,
-    onPrevious: () -> Unit,
-    onNext: () -> Unit
-) {
+private fun MonthHeader(month: YearMonth, onPrevious: () -> Unit, onNext: () -> Unit) {
     Row(
         modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically
     ) {
-        IconButton(onClick = onPrevious) {
-            Icon(Icons.Default.ChevronLeft, contentDescription = "Vorheriger Monat")
-        }
+        IconButton(onClick = onPrevious) { Icon(Icons.Default.ChevronLeft, null) }
         Text(
             text = "${month.month.getDisplayName(TextStyle.FULL, Locale.GERMAN)} ${month.year}",
             style = MaterialTheme.typography.titleLarge
         )
-        IconButton(onClick = onNext) {
-            Icon(Icons.Default.ChevronRight, contentDescription = "Nächster Monat")
-        }
+        IconButton(onClick = onNext) { Icon(Icons.Default.ChevronRight, null) }
     }
 }
 
 @Composable
 private fun WeekdayHeader() {
-    val days = listOf("Mo", "Di", "Mi", "Do", "Fr", "Sa", "So")
     Row(modifier = Modifier.fillMaxWidth()) {
-        days.forEach { day ->
-            Text(
-                text = day,
-                modifier = Modifier.weight(1f),
-                textAlign = TextAlign.Center,
-                style = MaterialTheme.typography.labelSmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
+        listOf("Mo","Di","Mi","Do","Fr","Sa","So").forEach { day ->
+            Text(day, modifier = Modifier.weight(1f), textAlign = TextAlign.Center,
+                style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
         }
     }
 }
@@ -130,27 +120,22 @@ private fun CalendarGrid(
     val firstDay = month.atDay(1)
     val startOffset = (firstDay.dayOfWeek.value - DayOfWeek.MONDAY.value + 7) % 7
     val daysInMonth = month.lengthOfMonth()
-    val totalCells = startOffset + daysInMonth
-    val rows = (totalCells + 6) / 7
+    val rows = (startOffset + daysInMonth + 6) / 7
 
     Column {
         repeat(rows) { row ->
             Row(modifier = Modifier.fillMaxWidth()) {
                 repeat(7) { col ->
-                    val cellIndex = row * 7 + col
-                    val day = cellIndex - startOffset + 1
+                    val day = row * 7 + col - startOffset + 1
                     if (day < 1 || day > daysInMonth) {
                         Spacer(Modifier.weight(1f).aspectRatio(1f))
                     } else {
                         val date = month.atDay(day)
-                        val hasEntry = datesWithEntries.contains(date.toString())
-                        val isSelected = date == selectedDate
-                        val isToday = date == LocalDate.now()
                         DayCell(
                             day = day,
-                            hasEntry = hasEntry,
-                            isSelected = isSelected,
-                            isToday = isToday,
+                            hasEntry = datesWithEntries.contains(date.toString()),
+                            isSelected = date == selectedDate,
+                            isToday = date == LocalDate.now(),
                             onClick = { onDayClick(date) },
                             modifier = Modifier.weight(1f)
                         )
@@ -179,7 +164,7 @@ private fun DayCell(
                 when {
                     isSelected -> MaterialTheme.colorScheme.primary
                     isToday -> MaterialTheme.colorScheme.primaryContainer
-                    else -> MaterialTheme.colorScheme.surface
+                    else -> MaterialTheme.colorScheme.surface.copy(alpha = 0.7f)
                 }
             )
             .clickable(onClick = onClick),
@@ -196,15 +181,9 @@ private fun DayCell(
                 style = MaterialTheme.typography.bodyMedium
             )
             if (hasEntry) {
-                Spacer(Modifier.height(2.dp))
                 Box(
-                    modifier = Modifier
-                        .size(4.dp)
-                        .clip(CircleShape)
-                        .background(
-                            if (isSelected) MaterialTheme.colorScheme.onPrimary
-                            else MaterialTheme.colorScheme.primary
-                        )
+                    modifier = Modifier.size(4.dp).clip(CircleShape)
+                        .background(if (isSelected) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.primary)
                 )
             }
         }
