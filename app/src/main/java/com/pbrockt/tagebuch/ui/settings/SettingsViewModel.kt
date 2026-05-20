@@ -41,11 +41,13 @@ class SettingsViewModel @Inject constructor(
     private val _themeChoice = MutableStateFlow(prefs.themeChoice)
     val themeChoice: StateFlow<String> = _themeChoice
 
+    private val _accentColor = MutableStateFlow(prefs.accentColor)
+    val accentColor: StateFlow<String> = _accentColor
+
     val syncState = syncRepo.syncState
 
     fun setPin(pin: String) {
-        val hash = sha256(pin)
-        prefs.pinHash = hash
+        prefs.pinHash = sha256(pin)
         prefs.authMethod = SecurePrefs.AUTH_PIN
         _authMethod.value = SecurePrefs.AUTH_PIN
     }
@@ -64,24 +66,22 @@ class SettingsViewModel @Inject constructor(
     }
 
     fun saveWebDavConfig(url: String, user: String, pass: String, encPass: String) {
-        prefs.webDavUrl = url
-        prefs.webDavUser = user
-        prefs.webDavPassword = pass
-        prefs.webDavEncryptionPassphrase = encPass
-        _webDavUrl.value = url
-        _webDavUser.value = user
-        _webDavPassword.value = pass
-        _webDavEncPass.value = encPass
+        prefs.webDavUrl = url; prefs.webDavUser = user
+        prefs.webDavPassword = pass; prefs.webDavEncryptionPassphrase = encPass
+        _webDavUrl.value = url; _webDavUser.value = user
+        _webDavPassword.value = pass; _webDavEncPass.value = encPass
     }
 
     fun setSyncEnabled(enabled: Boolean) {
-        prefs.syncEnabled = enabled
-        _syncEnabled.value = enabled
+        prefs.syncEnabled = enabled; _syncEnabled.value = enabled
     }
 
     fun setTheme(theme: String) {
-        prefs.themeChoice = theme
-        _themeChoice.value = theme
+        prefs.themeChoice = theme; _themeChoice.value = theme
+    }
+
+    fun setAccentColor(color: String) {
+        prefs.accentColor = color; _accentColor.value = color
     }
 
     fun syncNow() {
