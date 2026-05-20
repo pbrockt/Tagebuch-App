@@ -16,7 +16,7 @@ android {
         minSdk = 35
         targetSdk = 35
         versionCode = 1
-        versionName = "0.1a"
+        versionName = "0.1"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
@@ -34,20 +34,27 @@ android {
 
     buildTypes {
         debug {
-            if (keystoreFile.exists()) {
-                signingConfig = signingConfigs.getByName("consistent")
-            }
+            if (keystoreFile.exists()) signingConfig = signingConfigs.getByName("consistent")
         }
         release {
             isMinifyEnabled = true
-            if (keystoreFile.exists()) {
-                signingConfig = signingConfigs.getByName("consistent")
-            }
+            isShrinkResources = true
+            if (keystoreFile.exists()) signingConfig = signingConfigs.getByName("consistent")
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
         }
+    }
+
+    // APK filename includes version
+    applicationVariants.all {
+        val variant = this
+        variant.outputs
+            .map { it as com.android.build.gradle.internal.api.BaseVariantOutputImpl }
+            .forEach { output ->
+                output.outputFileName = "Tagebuch-App-v${variant.versionName}.apk"
+            }
     }
 
     compileOptions {
