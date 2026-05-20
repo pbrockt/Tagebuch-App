@@ -1,23 +1,16 @@
 package com.pbrockt.tagebuch.ui.auth
 
-import android.content.ContextWrapper
-import androidx.biometric.BiometricManager
-import androidx.biometric.BiometricPrompt
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Backspace
-import androidx.compose.material.icons.filled.Fingerprint
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.fragment.app.FragmentActivity
 import androidx.hilt.navigation.compose.hiltViewModel
-import com.pbrockt.tagebuch.data.local.prefs.SecurePrefs
 import com.pbrockt.tagebuch.ui.theme.FloralBackground
 
 @Composable
@@ -26,20 +19,14 @@ fun AuthScreen(
     viewModel: AuthViewModel = hiltViewModel()
 ) {
     val state by viewModel.state.collectAsState()
-    val context = LocalContext.current
     var pin by remember { mutableStateOf("") }
     val maxPin = 4
 
     LaunchedEffect(state) {
         when (state) {
             is AuthState.Success, is AuthState.NoAuth -> onAuthenticated()
+            is AuthState.WrongPin -> pin = ""
             else -> {}
-        }
-    }
-
-    LaunchedEffect(Unit) {
-        if (viewModel.authMethod == SecurePrefs.AUTH_BIOMETRIC && viewModel.biometricEnabled) {
-            findFragmentActivity(context)?.let { showBiometricPrompt(it, viewModel::onBiometricSuccess) }
         }
     }
 
@@ -52,7 +39,8 @@ fun AuthScreen(
         ) {
             Text("Tagebuch", style = MaterialTheme.typography.headlineLarge)
             Spacer(Modifier.height(8.dp))
-            Text("PIN eingeben", style = MaterialTheme.typography.bodyMedium)
+            Text("PIN eingeben", style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant)
             Spacer(Modifier.height(32.dp))
 
             // 4 PIN dots
@@ -86,11 +74,9 @@ fun AuthScreen(
                                 onClick = {
                                     when (key) {
                                         "⌫" -> if (pin.isNotEmpty()) pin = pin.dropLast(1)
-                                        else -> {
-                                            if (pin.length < maxPin) {
-                                                pin += key
-                                                if (pin.length == maxPin) viewModel.verifyPin(pin)
-                                            }
+                                        else -> if (pin.length < maxPin) {
+                                            pin += key
+                                            if (pin.length == maxPin) viewModel.verifyPin(pin)
                                         }
                                     }
                                 },
@@ -101,7 +87,7 @@ fun AuthScreen(
                                     contentColor = MaterialTheme.colorScheme.onSurface
                                 )
                             ) {
-                                if (key == "⌫") Icon(Icons.Default.Backspace, null, modifier = Modifier.size(20.dp))
+                                if (key == "⌫") Icon(Icons.Default.Backspace, null, Modifier.size(20.dp))
                                 else Text(key, fontSize = 22.sp)
                             }
                         }
@@ -109,51 +95,6 @@ fun AuthScreen(
                 }
                 Spacer(Modifier.height(12.dp))
             }
-
-            if (viewModel.biometricEnabled) {
-                Spacer(Modifier.height(8.dp))
-                IconButton(onClick = {
-                    findFragmentActivity(context)?.let { showBiometricPrompt(it, viewModel::onBiometricSuccess) }
-                }) {
-                    Icon(Icons.Default.Fingerprint, contentDescription = "Fingerabdruck", modifier = Modifier.size(48.dp))
-                }
-            }
         }
-    }
-}
-
-private fun findFragmentActivity(context: android.content.Context): FragmentActivity? {
-    var ctx = context
-    while (ctx is ContextWrapper) {
-        if (ctx is FragmentActivity) return ctx
-        ctx = ctx.baseContext
-    }
-    return null
-}
-
-private fun showBiometricPrompt(activity: FragmentActivity, onSuccess: () -> Unit) {
-    val biometricManager = BiometricManager.from(activity)
-    val canAuthenticate = biometricManager.canAuthenticate(BiometricManager.Authenticators.BIOMETRIC_STRONG)
-    if (canAuthenticate != BiometricManager.BIOMETRIC_SUCCESS) return
-
-    val prompt = BiometricPrompt(activity, object : BiometricPrompt.AuthenticationCallback() {
-        override fun onAuthenticationSucceeded(result: BiometricPrompt.AuthenticationResult) {
-            onSuccess()
-        }
-        override fun onAuthenticationError(errorCode: Int, errString: CharSequence) {
-            // Silently ignore — user can use PIN instead
-        }
-    })
-    val info = BiometricPrompt.PromptInfo.Builder()
-        .setTitle("Tagebuch entsperren")
-        .setSubtitle("Fingerabdruck verwenden")
-        .setNegativeButtonText("PIN verwenden")
-        .setAllowedAuthenticators(BiometricManager.Authenticators.BIOMETRIC_STRONG)
-        .build()
-
-    try {
-        prompt.authenticate(info)
-    } catch (e: Exception) {
-        // Biometric not available — fall back to PIN silently
     }
 }
