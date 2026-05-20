@@ -217,6 +217,16 @@ private fun CalendarGrid(
     }
 }
 
+private fun moodEmoji(mood: String?) = when (mood) {
+    "great" -> "😁"; "good" -> "😊"; "okay" -> "😐"
+    "bad" -> "😔"; "awful" -> "😢"; else -> null
+}
+
+private fun weatherEmoji(weather: String?) = when (weather) {
+    "sunny" -> "☀"; "cloudy" -> "☁"; "rainy" -> "🌧"
+    "snowy" -> "❄"; "stormy" -> "⛈"; else -> null
+}
+
 @Composable
 private fun DayCell(
     day: Int,
@@ -230,39 +240,67 @@ private fun DayCell(
     onClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    val moodColor = if (showMood) moodColorMap[mood] else null
     val bgColor = when {
         isSelected -> MaterialTheme.colorScheme.primary
         isToday -> MaterialTheme.colorScheme.primaryContainer
-        moodColor != null -> moodColor.copy(alpha = 0.25f)
         else -> MaterialTheme.colorScheme.surface.copy(alpha = 0.7f)
     }
+
+    val textColor = when {
+        isSelected -> MaterialTheme.colorScheme.onPrimary
+        isToday -> MaterialTheme.colorScheme.onPrimaryContainer
+        else -> MaterialTheme.colorScheme.onSurface
+    }
+
+    // Welches Icon oben anzeigen?
+    val topEmoji = when {
+        showWeather && showMood -> weatherEmoji(weather)  // Wetter oben bei "Beides"
+        showWeather -> weatherEmoji(weather)
+        else -> null
+    }
+    // Welches Icon unten anzeigen?
+    val bottomEmoji = when {
+        showMood && !mood.isNullOrEmpty() -> moodEmoji(mood)
+        showWeather && showMood && !weather.isNullOrEmpty() -> null  // Wetter bereits oben
+        else -> null
+    }
+
+    val iconSize = androidx.compose.ui.unit.TextUnit(9f, androidx.compose.ui.unit.TextUnitType.Sp)
+
     Box(
-        modifier = modifier.aspectRatio(1f).clip(CircleShape)
-            .background(bgColor).clickable(onClick = onClick),
+        modifier = modifier
+            .aspectRatio(1f)
+            .clip(CircleShape)
+            .background(bgColor)
+            .clickable(onClick = onClick),
         contentAlignment = Alignment.Center
     ) {
-        Column(horizontalAlignment = Alignment.CenterHorizontally) {
-            val weatherEmoji = if (showWeather) when (weather) {
-                "sunny" -> "☀"; "cloudy" -> "☁"; "rainy" -> "🌧"
-                "snowy" -> "❄"; "stormy" -> "⛈"; else -> null
-            } else null
-            if (weatherEmoji != null) {
-                Text(weatherEmoji, style = MaterialTheme.typography.labelSmall.copy(
-                    fontSize = androidx.compose.ui.unit.TextUnit(8f, androidx.compose.ui.unit.TextUnitType.Sp)))
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center,
+            modifier = Modifier.padding(vertical = 2.dp)
+        ) {
+            // Oberes Icon (Wetter bei "Wetter" oder "Beides")
+            if (topEmoji != null) {
+                Text(topEmoji, style = MaterialTheme.typography.labelSmall.copy(fontSize = iconSize))
+            } else {
+                Spacer(Modifier.height(9.dp))
             }
-            Text(
-                day.toString(),
-                color = if (isSelected) MaterialTheme.colorScheme.onPrimary
-                else if (isToday) MaterialTheme.colorScheme.onPrimaryContainer
-                else MaterialTheme.colorScheme.onSurface,
-                style = MaterialTheme.typography.bodySmall
-            )
-            if (hasEntry) {
+
+            // Tag-Nummer
+            Text(day.toString(), color = textColor, style = MaterialTheme.typography.bodySmall)
+
+            // Unteres Icon (Stimmung bei "Stimmung" oder "Beides")
+            if (bottomEmoji != null) {
+                Text(bottomEmoji, style = MaterialTheme.typography.labelSmall.copy(fontSize = iconSize))
+            } else if (hasEntry) {
+                // Eintrag-Punkt wenn kein Mood-Icon
                 Box(Modifier.size(3.dp).clip(CircleShape).background(
                     if (isSelected) MaterialTheme.colorScheme.onPrimary
                     else MaterialTheme.colorScheme.primary
                 ))
+            } else {
+                Spacer(Modifier.height(9.dp))
             }
         }
     }
