@@ -73,6 +73,10 @@ class SecurePrefs @Inject constructor(@ApplicationContext context: Context) {
         get() = prefs.getInt(KEY_REMINDER_MINUTE, 0)
         set(value) = prefs.edit().putInt(KEY_REMINDER_MINUTE, value).apply()
 
+    var calendarIconMode: String
+        get() = prefs.getString(KEY_CALENDAR_ICON_MODE, CALENDAR_MODE_MOOD) ?: CALENDAR_MODE_MOOD
+        set(value) = prefs.edit().putString(KEY_CALENDAR_ICON_MODE, value).apply()
+
     companion object {
         const val KEY_PIN_HASH = "pin_hash"
         const val KEY_BIOMETRIC = "biometric_enabled"
@@ -87,6 +91,7 @@ class SecurePrefs @Inject constructor(@ApplicationContext context: Context) {
         const val KEY_REMINDER_ENABLED = "reminder_enabled"
         const val KEY_REMINDER_HOUR = "reminder_hour"
         const val KEY_REMINDER_MINUTE = "reminder_minute"
+        const val KEY_CALENDAR_ICON_MODE = "calendar_icon_mode"
 
         const val AUTH_NONE = "none"
         const val AUTH_PIN = "pin"
@@ -102,5 +107,9 @@ class SecurePrefs @Inject constructor(@ApplicationContext context: Context) {
         const val ACCENT_ORANGE = "orange"
         const val ACCENT_PINK = "pink"
         const val ACCENT_TEAL = "teal"
+
+        const val CALENDAR_MODE_MOOD = "mood"
+        const val CALENDAR_MODE_WEATHER = "weather"
+        const val CALENDAR_MODE_BOTH = "both"
     }
 }
