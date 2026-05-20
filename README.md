@@ -20,7 +20,7 @@
 > 🤖 *Diese App wurde vollständig durch künstliche Intelligenz (Claude von Anthropic) entwickelt — von der Architektur über den Code bis hin zu diesem README.*
 
 [![Build APK](https://github.com/pbrockt/Tagebuch-App/actions/workflows/build.yml/badge.svg)](https://github.com/pbrockt/Tagebuch-App/actions/workflows/build.yml)
-![Version](https://img.shields.io/badge/Version-0.1a-purple)
+![Version](https://img.shields.io/badge/Version-0.1-purple)
 ![Android](https://img.shields.io/badge/Android-15+-green)
 ![Kotlin](https://img.shields.io/badge/Kotlin-Jetpack%20Compose-blue)
 
@@ -31,69 +31,63 @@
 ## ✨ Features
 
 ### 🔒 Sicherheit & Datenschutz
-- **4-stelliger PIN-Schutz** — App sperrt sich sofort beim Verlassen, PIN-Abfrage beim Zurückkehren
-- **AES-256-GCM Verschlüsselung** — alle lokalen Daten sind mit Android Keystore verschlüsselt
-- **Kein Cloud-Zwang** — funktioniert vollständig offline
-- **Kein Backup** — Daten verlassen das Gerät nur über WebDAV, das du selbst konfigurierst
+- **4-stelliger PIN-Schutz** — sperrt sich sofort beim Verlassen der App
+- **PIN-Versuch-Limit** — nach 5 Fehlversuchen 30 Sekunden Sperre
+- **Haptic Feedback** — kurze Vibration bei jeder PIN-Eingabe
+- **AES-256-GCM Verschlüsselung** — alle Daten durch Android Keystore geschützt
+- **Kein Cloud-Zwang** — vollständig offline nutzbar
+- **Kein Backup** — Daten verlassen das Gerät nur über selbst konfigurierten WebDAV
 
 ### 📅 Kalender
 - Monatsansicht mit Navigation
+- **Einträge-Zähler** im Monats-Header (z. B. „Mai · 12 Einträge")
 - Farbige Tages-Markierung je nach **Stimmung** (grün → rot)
 - Kleines **Wetter-Icon** pro Tag
 - Punkt-Indikator für Tage mit Einträgen
-- Florale Hintergrund-Dekoration in der Akzentfarbe
 
 ### ✏️ Eintrags-Editor
-- Mehrere **Seiten pro Tag** (Tabs zum Durchschalten)
+- Mehrere **Seiten pro Tag** (Tabs)
 - Freies **Textfeld** für Tagebucheinträge
-- **Emoji-Canvas** — Emojis frei auf der Seite platzieren, verschieben & skalieren
+- **Emoji-Canvas** — Emojis frei platzieren, verschieben & skalieren (Pinch)
 - **Bild-Picker** — Fotos aus der Galerie einfügen und frei positionieren
 - **Stimmungs-Auswahl**: 😁 Super / 😊 Gut / 😐 Ok / 😔 Schlecht / 😢 Schrecklich
 - **Wetter-Auswahl**: ☀️ Sonnig / ☁️ Bewölkt / 🌧️ Regen / ❄️ Schnee / ⛈️ Gewitter
 
 ### 📊 Statistiken
-- 🔥 Aktueller Streak (Tage in Folge)
-- 🏆 Längster Streak aller Zeiten
-- ✍️ Gesamtanzahl geschriebener Wörter
+- 🔥 Aktueller Streak + 🏆 Längster Streak
+- ✍️ Gesamtanzahl Wörter
 - Monats-Balkendiagramm (letzte 6 Monate)
 - Stimmungsverteilung als Fortschrittsbalken
 
 ### 🔍 Suche
 - Volltext-Suche über alle Einträge (ab 2 Zeichen)
-- Ergebnisse mit Datum und Textvorschau
 
 ### 🔔 Erinnerungen
 - Tägliche Benachrichtigung zur konfigurierbaren Uhrzeit
-- „Hast du deinen Tag schon festgehalten?"
 
 ### 📄 PDF-Export
-- Aktuellen Monat als PDF exportieren
-- Mit Stimmung, Wetter und allen Seiteneinträgen
-- Teilen via beliebige App (WhatsApp, E-Mail, etc.)
+- Aktuellen Monat als PDF exportieren und teilen
 
 ### ☁️ WebDAV-Synchronisation
-- Bidirektionale Sync mit eigenem Server (Nextcloud, ownCloud, etc.)
-- **Clientseitige Verschlüsselung** — Server sieht nur verschlüsselte Dateien
-- Schlüssel wird aus deiner Passphrase via PBKDF2 abgeleitet
-- Offline-first: funktioniert ohne Verbindung, synct beim nächsten Start
+- Bidirektionale Sync mit eigenem Server
+- Clientseitige Verschlüsselung (PBKDF2 + AES-GCM)
+- Offline-first
 
 ### 🎨 Design
-- **6 Akzentfarben**: Lila, Blau, Grün, Orange, Rosa, Türkis
-- **Light / Dark / Systemstandard** Theme
+- 6 Akzentfarben: Lila, Blau, Grün, Orange, Rosa, Türkis
+- Light / Dark / Systemstandard Theme
 - Material Design 3
-- Florale Hintergrund-Muster in der gewählten Farbe
 
 ---
 
 ## 📱 Installation
 
-1. [Neueste APK herunterladen](https://github.com/pbrockt/Tagebuch-App/actions) → neuesten Build öffnen → **Artifacts** → `tagebuch-debug`
-2. ZIP entpacken
-3. `app-debug.apk` auf das Android-Gerät übertragen
-4. Einstellungen → Sicherheit → **Unbekannte Quellen** erlauben
-5. APK installieren
+1. [Neueste APK herunterladen](https://github.com/pbrockt/Tagebuch-App/actions) → Build öffnen → **Artifacts** → `Tagebuch-App-v0.1`
+2. `Tagebuch-App-v0.1.apk` auf das Gerät übertragen
+3. Einstellungen → Sicherheit → **Unbekannte Quellen** erlauben
+4. APK installieren
 
-> ⚠️ **Hinweis bei Updates:** Da dies ein Debug-Build ist, muss beim ersten Update-Versuch die alte Version ggf. zuerst deinstalliert werden. Ab dem zweiten Update sollte eine Direkt-Installation funktionieren (solange der CI-Cache aktiv ist).
+> **Hinweis:** Beim Update von einer früheren Version die alte App zuerst deinstallieren (einmalig nötig).
 
 ---
 
@@ -116,48 +110,36 @@
 
 ## 🤖 KI-Entwicklung
 
-Diese App wurde **vollständig von Claude (Anthropic)** entwickelt — einem großen Sprachmodell. Der gesamte Prozess lief über Claude Code:
+Diese App wurde **vollständig von Claude (Anthropic)** entwickelt:
 
 - Anforderungsanalyse aus der `ToDo.txt`
 - Architekturentscheidungen (MVVM, Room, Hilt, etc.)
-- Schreiben aller Kotlin-Quelldateien (~40 Dateien, ~3.500 Zeilen Code)
+- ~40 Kotlin-Quelldateien, ~4.000 Zeilen Code
 - Fehlerbehebung anhand von GitHub Actions Build-Logs
 - Iterative Verbesserungen auf Nutzerfeedback
 
-**Entwicklungszeit:** Eine Konversation  
-**Menschlicher Aufwand:** Anforderungen formulieren, Feedback geben  
+**Menschlicher Aufwand:** Anforderungen formulieren + Feedback  
 **KI-Aufwand:** Alles andere
 
 ---
 
-## 📁 Projektstruktur
+## 📋 Changelog
 
-```
-app/src/main/java/com/pbrockt/tagebuch/
-├── data/
-│   ├── local/          # Room DB, Crypto, SecurePrefs
-│   ├── model/          # DiaryDay, DiaryPage, PageMedia
-│   ├── remote/         # WebDAV Client & SyncManager
-│   └── repository/     # DiaryRepository, SyncRepository
-├── export/             # PDF-Exporter
-├── notifications/      # ReminderWorker, NotificationHelper
-├── ui/
-│   ├── auth/           # PIN-Screen
-│   ├── calendar/       # Kalender + Popup-Editor
-│   ├── editor/         # Canvas-Editor
-│   ├── search/         # Volltext-Suche
-│   ├── settings/       # Einstellungen
-│   ├── stats/          # Statistiken
-│   └── theme/          # Light/Dark + Farben + Blüten-Hintergrund
-├── AppLockManager.kt   # App-Sperre bei Hintergrund
-├── MainActivity.kt
-└── TagebuchApplication.kt
-```
+### v0.1 (Release)
+- Initiale Version mit allen Kern-Features
+- PIN-Schutz mit Versuch-Limit (5x → 30s Sperre)
+- Haptic Feedback bei PIN-Eingabe
+- Einträge-Zähler im Kalender-Header
+- Berechtigungen direkt in den Einstellungen verwalten
+- Stimmungs- & Wetter-Tracking
+- Statistiken mit Streak-Anzeige
+- PDF-Export, Suche, WebDAV-Sync
+- 6 Farbthemen + Light/Dark Mode
 
 ---
 
 <div align="center">
 
-*Version 0.1a — erstellt mit ❤️ und 🤖*
+*Version 0.1 — erstellt mit ❤️ und 🤖 von Claude (Anthropic)*
 
 </div>
