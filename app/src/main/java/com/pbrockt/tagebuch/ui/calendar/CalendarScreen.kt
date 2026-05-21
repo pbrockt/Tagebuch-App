@@ -103,7 +103,8 @@ fun CalendarScreen(viewModel: CalendarViewModel = hiltViewModel()) {
                     }
                 }
             )
-        }
+        },
+        contentWindowInsets = androidx.compose.foundation.layout.WindowInsets(0)
     ) { padding ->
         Box(
             modifier = Modifier.fillMaxSize().padding(padding)
