@@ -1,5 +1,6 @@
 package com.pbrockt.tagebuch.ui.auth
 
+import androidx.compose.animation.core.*
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
@@ -9,6 +10,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.text.style.TextAlign
@@ -16,6 +18,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.pbrockt.tagebuch.ui.theme.FloralBackground
+import kotlinx.coroutines.delay
 
 @Composable
 fun AuthScreen(
@@ -27,10 +30,23 @@ fun AuthScreen(
     var pin by remember { mutableStateOf("") }
     val maxPin = 4
 
+    // Shake-Offset für falschen PIN
+    var shakeOffset by remember { mutableFloatStateOf(0f) }
+
     LaunchedEffect(state) {
         when (state) {
             is AuthState.Success, is AuthState.NoAuth -> onAuthenticated()
-            is AuthState.WrongPin, is AuthState.LockedOut -> pin = ""
+            is AuthState.WrongPin, is AuthState.LockedOut -> {
+                pin = ""
+                // Shake-Animation: 3x hin-her
+                for (i in 0 until 3) {
+                    shakeOffset = 12f
+                    delay(60)
+                    shakeOffset = -12f
+                    delay(60)
+                }
+                shakeOffset = 0f
+            }
             else -> {}
         }
     }
@@ -63,14 +79,29 @@ fun AuthScreen(
                     color = MaterialTheme.colorScheme.onSurfaceVariant)
                 Spacer(Modifier.height(32.dp))
 
-                // 4 PIN dots
-                Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
+                // PIN Dots mit Bounce + Shake
+                Row(
+                    horizontalArrangement = Arrangement.spacedBy(16.dp),
+                    modifier = Modifier.graphicsLayer { translationX = shakeOffset }
+                ) {
                     repeat(maxPin) { i ->
+                        val filled = i < pin.length
+                        // Bounce-Skala: neu gefüllter Dot springt kurz
+                        val scale by animateFloatAsState(
+                            targetValue = if (filled) 1f else 0.75f,
+                            animationSpec = spring(
+                                dampingRatio = Spring.DampingRatioMediumBouncy,
+                                stiffness = Spring.StiffnessHigh
+                            ),
+                            label = "dot_scale_$i"
+                        )
                         Surface(
                             shape = CircleShape,
-                            color = if (i < pin.length) MaterialTheme.colorScheme.primary
+                            color = if (filled) MaterialTheme.colorScheme.primary
                             else MaterialTheme.colorScheme.surfaceVariant,
-                            modifier = Modifier.size(18.dp)
+                            modifier = Modifier
+                                .size(18.dp)
+                                .graphicsLayer { scaleX = scale; scaleY = scale }
                         ) {}
                     }
                 }
