@@ -20,19 +20,18 @@ import java.util.Locale
 
 /** Extrahiert den lesbaren Text aus dem gespeicherten Inhalt (kann JSON oder Plaintext sein) */
 private fun extractPlainText(content: String): String {
-    if (content.startsWith("{")) {
-        return try {
-            // FormattedContent-JSON parsen und nur den Text zurückgeben
-            val json = kotlinx.serialization.json.Json { ignoreUnknownKeys = true }
-            val obj = json.parseToJsonElement(content).jsonObject
-            obj["text"]?.let {
-                kotlinx.serialization.json.Json.decodeFromJsonElement<String>(it)
-            } ?: content
-        } catch (e: Exception) {
-            content  // Fallback: rohen Text zeigen
-        }
+    if (!content.startsWith("{")) return content
+    return try {
+        // Einfaches Regex um das "text"-Feld aus dem FormattedContent-JSON zu lesen
+        val match = Regex(""""text"\s*:\s*"((?:[^"\\]|\\.)*)"""").find(content)
+        match?.groupValues?.get(1)
+            ?.replace("\\n", "\n")
+            ?.replace("\\\"", "\"")
+            ?.replace("\\\\", "\\")
+            ?: content
+    } catch (e: Exception) {
+        content
     }
-    return content
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
