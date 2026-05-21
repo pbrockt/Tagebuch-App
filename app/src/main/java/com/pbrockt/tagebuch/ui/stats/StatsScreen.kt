@@ -1,8 +1,10 @@
 package com.pbrockt.tagebuch.ui.stats
 
 import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
@@ -12,6 +14,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -36,9 +39,7 @@ fun StatsScreen(
             TopAppBar(
                 title = { Text("Statistiken") },
                 navigationIcon = {
-                    IconButton(onClick = onNavigateBack) {
-                        Icon(Icons.Default.ArrowBack, null)
-                    }
+                    IconButton(onClick = onNavigateBack) { Icon(Icons.Default.ArrowBack, null) }
                 }
             )
         }
@@ -51,17 +52,17 @@ fun StatsScreen(
                 .padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            // Stat cards row
+            // Gradient-Karten
             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                StatCard("🔥 Streak", "${stats.currentStreak} Tage", Modifier.weight(1f))
-                StatCard("🏆 Rekord", "${stats.longestStreak} Tage", Modifier.weight(1f))
+                GradientStatCard("🔥 Streak", "${stats.currentStreak} Tage", primary, Modifier.weight(1f))
+                GradientStatCard("🏆 Rekord", "${stats.longestStreak} Tage", primary, Modifier.weight(1f))
             }
             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                StatCard("📅 Tage", "${stats.totalDays}", Modifier.weight(1f))
-                StatCard("✍️ Wörter", "${stats.totalWords}", Modifier.weight(1f))
+                GradientStatCard("📅 Tage", "${stats.totalDays}", primary, Modifier.weight(1f))
+                GradientStatCard("✍️ Wörter", "${stats.totalWords}", primary, Modifier.weight(1f))
             }
 
-            // Monthly bar chart (last 6 months)
+            // Monats-Chart
             if (stats.monthCounts.isNotEmpty()) {
                 SectionTitle("Einträge pro Monat")
                 MonthlyChart(
@@ -72,7 +73,7 @@ fun StatsScreen(
                 )
             }
 
-            // Mood distribution
+            // Stimmungsverteilung
             if (stats.moodCounts.isNotEmpty()) {
                 SectionTitle("Stimmungsverteilung")
                 val moodOrder = listOf("great","good","okay","bad","awful")
@@ -88,7 +89,6 @@ fun StatsScreen(
                 val total = stats.moodCounts.values.sum().toFloat()
                 moodOrder.filter { stats.moodCounts.containsKey(it) }.forEach { mood ->
                     val count = stats.moodCounts[mood] ?: 0
-                    val fraction = count / total
                     Row(
                         modifier = Modifier.fillMaxWidth(),
                         verticalAlignment = Alignment.CenterVertically,
@@ -97,7 +97,7 @@ fun StatsScreen(
                         Text(moodLabels[mood] ?: mood, modifier = Modifier.width(120.dp),
                             style = MaterialTheme.typography.bodyMedium)
                         LinearProgressIndicator(
-                            progress = { fraction },
+                            progress = { count / total },
                             modifier = Modifier.weight(1f).height(8.dp),
                             color = moodColors[mood] ?: primary
                         )
@@ -111,14 +111,21 @@ fun StatsScreen(
 }
 
 @Composable
-private fun StatCard(label: String, value: String, modifier: Modifier = Modifier) {
-    Card(modifier = modifier) {
-        Column(
-            modifier = Modifier.padding(16.dp).fillMaxWidth(),
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            Text(value, style = MaterialTheme.typography.headlineMedium,
-                color = MaterialTheme.colorScheme.primary)
+private fun GradientStatCard(label: String, value: String, primary: Color, modifier: Modifier = Modifier) {
+    Box(
+        modifier = modifier
+            .height(90.dp)
+            .background(
+                brush = Brush.horizontalGradient(
+                    colors = listOf(primary.copy(alpha = 0.15f), primary.copy(alpha = 0.03f))
+                ),
+                shape = RoundedCornerShape(16.dp)
+            )
+            .padding(16.dp),
+        contentAlignment = Alignment.Center
+    ) {
+        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+            Text(value, style = MaterialTheme.typography.headlineMedium, color = primary)
             Text(label, style = MaterialTheme.typography.labelSmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant, textAlign = TextAlign.Center)
         }
@@ -140,17 +147,21 @@ private fun MonthlyChart(
         Canvas(modifier = Modifier.weight(1f).fillMaxWidth()) {
             val barWidth = size.width / months.size * 0.6f
             val gap = size.width / months.size * 0.4f / 2f
-
             months.forEachIndexed { i, month ->
                 val count = monthCounts[month.toString()] ?: 0
                 val barHeight = (count.toFloat() / maxCount) * size.height
                 val x = i * (size.width / months.size) + gap
-                // Background bar
                 drawRect(surfaceColor, Offset(x, 0f), Size(barWidth, size.height))
-                // Filled bar
                 if (count > 0) {
-                    drawRect(primaryColor.copy(alpha = 0.85f),
-                        Offset(x, size.height - barHeight), Size(barWidth, barHeight))
+                    drawRect(
+                        brush = Brush.verticalGradient(
+                            colors = listOf(primaryColor, primaryColor.copy(alpha = 0.6f)),
+                            startY = size.height - barHeight,
+                            endY = size.height
+                        ),
+                        topLeft = Offset(x, size.height - barHeight),
+                        size = Size(barWidth, barHeight)
+                    )
                 }
             }
         }
@@ -158,10 +169,8 @@ private fun MonthlyChart(
             months.forEach { month ->
                 Text(
                     text = month.month.getDisplayName(TextStyle.SHORT, Locale.GERMAN),
-                    modifier = Modifier.weight(1f),
-                    textAlign = TextAlign.Center,
-                    fontSize = 10.sp,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                    modifier = Modifier.weight(1f), textAlign = TextAlign.Center,
+                    fontSize = 10.sp, color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
         }
@@ -170,6 +179,5 @@ private fun MonthlyChart(
 
 @Composable
 private fun SectionTitle(text: String) {
-    Text(text, style = MaterialTheme.typography.titleMedium,
-        color = MaterialTheme.colorScheme.primary)
+    Text(text, style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.primary)
 }
