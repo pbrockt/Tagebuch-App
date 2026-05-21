@@ -35,8 +35,8 @@ fun StatsScreen(
     Scaffold(
         topBar = {
             TopAppBar(title = { Text("Statistiken") })
-            // Kein Zurück-Pfeil — Navigation erfolgt über Bottom Bar
-        }
+        },
+        contentWindowInsets = androidx.compose.foundation.layout.WindowInsets(0)
     ) { padding ->
         Column(
             modifier = Modifier
