@@ -29,6 +29,9 @@ interface DiaryDao {
     @Query("UPDATE diary_days SET weather = :weather, updatedAt = :ts WHERE date = :date")
     suspend fun updateWeather(date: String, weather: String?, ts: Long = System.currentTimeMillis())
 
+    @Query("UPDATE diary_days SET period = :period, updatedAt = :ts WHERE date = :date")
+    suspend fun updatePeriod(date: String, period: String?, ts: Long = System.currentTimeMillis())
+
     @Query("SELECT * FROM diary_pages WHERE dayDate = :date ORDER BY pageIndex ASC")
     fun getPagesForDay(date: String): Flow<List<DiaryPage>>
 
