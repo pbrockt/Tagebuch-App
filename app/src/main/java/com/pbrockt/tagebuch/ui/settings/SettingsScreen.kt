@@ -15,6 +15,7 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
+import androidx.compose.foundation.text.KeyboardOptions as FoundationKeyboardOptions
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -47,6 +48,8 @@ fun SettingsScreen(
     val themeChoice by viewModel.themeChoice.collectAsState()
     val accentColor by viewModel.accentColor.collectAsState()
     val calendarIconMode by viewModel.calendarIconMode.collectAsState()
+    val fontChoice by viewModel.fontChoice.collectAsState()
+    val ownBirthday by viewModel.ownBirthday.collectAsState()
     val syncState by viewModel.syncState.collectAsState()
     val testState by viewModel.testState.collectAsState()
     val reminderEnabled by viewModel.reminderEnabled.collectAsState()
@@ -54,6 +57,7 @@ fun SettingsScreen(
     val reminderMinute by viewModel.reminderMinute.collectAsState()
 
     var newPin by remember { mutableStateOf("") }
+    var ownBirthdayInput by remember(ownBirthday) { mutableStateOf(ownBirthday) }
     var showPinInput by remember { mutableStateOf(false) }
     var webDavUrlInput by remember(webDavUrl) { mutableStateOf(webDavUrl) }
     var webDavUserInput by remember(webDavUser) { mutableStateOf(webDavUser) }
@@ -138,6 +142,24 @@ fun SettingsScreen(
                         Spacer(Modifier.height(4.dp))
                         Text(label, style = MaterialTheme.typography.labelSmall)
                     }
+                }
+            }
+
+            // --- Schriftart ---
+            Spacer(Modifier.height(4.dp))
+            Text("Schriftart", style = MaterialTheme.typography.labelLarge)
+            Spacer(Modifier.height(4.dp))
+            val fonts = listOf(
+                SecurePrefs.FONT_DEFAULT to "Standard (Roboto)",
+                SecurePrefs.FONT_SERIF to "Serif (klassisches Tagebuch)",
+                SecurePrefs.FONT_MONO to "Schreibmaschine (Monospace)",
+                SecurePrefs.FONT_CURSIVE to "Kursiv (Cursive)"
+            )
+            fonts.forEach { (key, label) ->
+                Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+                    RadioButton(selected = fontChoice == key, onClick = { viewModel.setFont(key) })
+                    Spacer(Modifier.width(8.dp))
+                    Text(label, style = MaterialTheme.typography.bodySmall)
                 }
             }
 
@@ -237,8 +259,12 @@ fun SettingsScreen(
 
             HorizontalDivider()
 
-            // --- BERECHTIGUNGEN ---
-            PermissionsSection()
+            // --- BERECHTIGUNGEN & GEBURTSTAGE ---
+            PermissionsSection(
+                ownBirthdayInput = ownBirthdayInput,
+                onBirthdayChanged = { ownBirthdayInput = it },
+                onBirthdaySaved = { viewModel.setOwnBirthday(ownBirthdayInput) }
+            )
 
             Spacer(Modifier.height(8.dp))
             Text("Version 0.1a", style = MaterialTheme.typography.labelSmall,
@@ -249,10 +275,12 @@ fun SettingsScreen(
 }
 
 @Composable
-private fun PermissionsSection() {
+private fun PermissionsSection(
+    ownBirthdayInput: String,
+    onBirthdayChanged: (String) -> Unit,
+    onBirthdaySaved: () -> Unit
+) {
     val context = LocalContext.current
-
-    // Track permission state with recomposition trigger
     var refreshKey by remember { mutableIntStateOf(0) }
 
     val notifGranted = remember(refreshKey) {
@@ -260,21 +288,14 @@ private fun PermissionsSection() {
             ContextCompat.checkSelfPermission(context, Manifest.permission.POST_NOTIFICATIONS) == PackageManager.PERMISSION_GRANTED
         else true
     }
-    val mediaGranted = remember(refreshKey) {
-        if (Build.VERSION.SDK_INT >= 33)
-            ContextCompat.checkSelfPermission(context, Manifest.permission.READ_MEDIA_IMAGES) == PackageManager.PERMISSION_GRANTED
-        else
-            ContextCompat.checkSelfPermission(context, Manifest.permission.READ_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED
+    val contactsGranted = remember(refreshKey) {
+        ContextCompat.checkSelfPermission(context, Manifest.permission.READ_CONTACTS) == PackageManager.PERMISSION_GRANTED
     }
 
-    val notifLauncher = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) {
-        refreshKey++
-    }
-    val mediaLauncher = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) {
-        refreshKey++
-    }
+    val notifLauncher = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { refreshKey++ }
+    val contactsLauncher = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { refreshKey++ }
 
-    SectionTitle("Berechtigungen")
+    SectionTitle("Berechtigungen & Geburtstage")
 
     PermissionRow(
         title = "Benachrichtigungen",
@@ -282,22 +303,44 @@ private fun PermissionsSection() {
         icon = Icons.Default.Notifications,
         granted = notifGranted,
         onRequest = {
-            if (Build.VERSION.SDK_INT >= 33)
-                notifLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
+            if (Build.VERSION.SDK_INT >= 33) notifLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
         }
     )
     PermissionRow(
-        title = "Fotos & Medien",
-        description = "Bilder in Einträge einfügen",
-        icon = Icons.Default.Image,
-        granted = mediaGranted,
-        onRequest = {
-            if (Build.VERSION.SDK_INT >= 33)
-                mediaLauncher.launch(Manifest.permission.READ_MEDIA_IMAGES)
-            else
-                mediaLauncher.launch(Manifest.permission.READ_EXTERNAL_STORAGE)
-        }
+        title = "Kontakte",
+        description = "Geburtstage 🎈 im Kalender anzeigen",
+        icon = Icons.Default.Contacts,
+        granted = contactsGranted,
+        onRequest = { contactsLauncher.launch(Manifest.permission.READ_CONTACTS) }
     )
+
+    // Eigener Geburtstag
+    Spacer(Modifier.height(8.dp))
+    Text("Eigener Geburtstag (für 👑 im Kalender)",
+        style = MaterialTheme.typography.labelMedium,
+        color = MaterialTheme.colorScheme.onSurfaceVariant)
+    Spacer(Modifier.height(4.dp))
+    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+        OutlinedTextField(
+            value = ownBirthdayInput,
+            onValueChange = { if (it.length <= 5) onBirthdayChanged(it) },
+            label = { Text("TT.MM (z.B. 15.03)") },
+            modifier = Modifier.weight(1f),
+            singleLine = true,
+            keyboardOptions = androidx.compose.foundation.text.KeyboardOptions(
+                keyboardType = androidx.compose.ui.text.input.KeyboardType.Number
+            )
+        )
+        Button(
+            onClick = onBirthdaySaved,
+            modifier = Modifier.align(Alignment.CenterVertically)
+        ) { Text("Speichern") }
+    }
+    if (ownBirthdayInput.isNotEmpty()) {
+        Text("👑 erscheint am $ownBirthdayInput im Kalender",
+            style = MaterialTheme.typography.labelSmall,
+            color = MaterialTheme.colorScheme.primary)
+    }
 }
 
 @Composable
