@@ -30,17 +30,18 @@ class MainActivity : ComponentActivity() {
         setContent {
             val themeChoice by mainViewModel.themeChoice.collectAsState()
             val accentColor by mainViewModel.accentColor.collectAsState()
-            val calendarIconMode by mainViewModel.calendarIconMode.collectAsState()
+            val fontChoice by mainViewModel.fontChoice.collectAsState()
             val isLocked by appLockManager.isLocked.collectAsState()
 
-            TagebuchTheme(themeChoice = themeChoice, accentColor = accentColor) {
+            TagebuchTheme(
+                themeChoice = themeChoice,
+                accentColor = accentColor,
+                fontChoice = fontChoice
+            ) {
                 if (isLocked) {
                     AuthScreen(onAuthenticated = { appLockManager.unlockApp() })
                 } else {
-                    AppNavigation(
-                        onThemeChanged = { mainViewModel.refresh() },
-                        calendarIconMode = calendarIconMode
-                    )
+                    AppNavigation(onThemeChanged = { mainViewModel.refresh() })
                 }
             }
         }
