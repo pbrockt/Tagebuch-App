@@ -1,6 +1,7 @@
 package com.pbrockt.tagebuch.ui.auth
 
 import androidx.compose.animation.core.*
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
@@ -53,7 +54,11 @@ fun AuthScreen(
 
     val isLocked = state is AuthState.LockedOut
 
-    Box(modifier = Modifier.fillMaxSize()) {
+    // Solider Hintergrund — kein Durchscheinen der App dahinter
+    Box(modifier = Modifier
+        .fillMaxSize()
+        .background(MaterialTheme.colorScheme.surface)
+    ) {
         FloralBackground()
         Column(
             modifier = Modifier.fillMaxSize().padding(32.dp),
