@@ -15,8 +15,8 @@ android {
         applicationId = "com.pbrockt.tagebuch"
         minSdk = 35
         targetSdk = 35
-        versionCode = 12
-        versionName = "0.3b"
+        versionCode = 13
+        versionName = "0.3c"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
