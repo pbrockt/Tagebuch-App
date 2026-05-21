@@ -39,6 +39,10 @@ class SettingsViewModel @Inject constructor(
     val accentColor: StateFlow<String> = _accentColor
     private val _calendarIconMode = MutableStateFlow(prefs.calendarIconMode)
     val calendarIconMode: StateFlow<String> = _calendarIconMode
+    private val _fontChoice = MutableStateFlow(prefs.fontChoice)
+    val fontChoice: StateFlow<String> = _fontChoice
+    private val _ownBirthday = MutableStateFlow(prefs.ownBirthdayDate)
+    val ownBirthday: StateFlow<String> = _ownBirthday
     private val _reminderEnabled = MutableStateFlow(prefs.reminderEnabled)
     val reminderEnabled: StateFlow<Boolean> = _reminderEnabled
     private val _reminderHour = MutableStateFlow(prefs.reminderHour)
@@ -67,6 +71,8 @@ class SettingsViewModel @Inject constructor(
     fun setTheme(theme: String) { prefs.themeChoice = theme; _themeChoice.value = theme }
     fun setAccentColor(color: String) { prefs.accentColor = color; _accentColor.value = color }
     fun setCalendarIconMode(mode: String) { prefs.calendarIconMode = mode; _calendarIconMode.value = mode }
+    fun setFont(font: String) { prefs.fontChoice = font; _fontChoice.value = font }
+    fun setOwnBirthday(date: String) { prefs.ownBirthdayDate = date; _ownBirthday.value = date }
     fun setReminderEnabled(enabled: Boolean) {
         prefs.reminderEnabled = enabled; _reminderEnabled.value = enabled
         if (enabled) ReminderWorker.schedule(context, prefs.reminderHour, prefs.reminderMinute)
