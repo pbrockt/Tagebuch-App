@@ -27,7 +27,7 @@ import java.util.Locale
 
 private val MOODS = listOf("great" to "😁", "good" to "😊", "okay" to "😐", "bad" to "😔", "awful" to "😢")
 private val WEATHERS = listOf("sunny" to "☀️", "cloudy" to "☁️", "rainy" to "🌧️", "snowy" to "❄️", "stormy" to "⛈️")
-private val PERIODS = listOf("start" to "🩸 Start", "active" to "🩸 Aktiv", "end" to "🩸 Ende")
+private val PERIODS = listOf("start" to "🩸 Start", "active" to "🩸 Aktiv", "severe" to "🔴 Stark", "end" to "🩸 Ende")
 
 private val PAGE_COLORS = listOf(
     null to "Standard",
