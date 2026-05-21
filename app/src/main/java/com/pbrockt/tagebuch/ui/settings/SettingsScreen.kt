@@ -15,7 +15,6 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
@@ -83,12 +82,14 @@ fun SettingsScreen(
                 title = { Text("Einstellungen") },
                 // Kein Zurück-Pfeil — Navigation erfolgt über Bottom Bar
             )
-        }
+        },
+        // Wichtig: contentWindowInsets = 0, damit die äußere AppNavigation-Scaffold
+        // die Navigationsleiste nicht doppelt einrechnet (sonst entsteht eine Lücke)
+        contentWindowInsets = androidx.compose.foundation.layout.WindowInsets(0)
     ) { padding ->
         Column(
             modifier = Modifier.fillMaxSize().padding(padding)
                 .verticalScroll(rememberScrollState())
-                .imePadding()  // Verhindert Lücke über der Navigationsleiste
                 .padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
