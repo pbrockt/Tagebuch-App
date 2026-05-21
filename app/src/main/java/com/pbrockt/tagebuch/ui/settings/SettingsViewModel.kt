@@ -86,8 +86,9 @@ class SettingsViewModel @Inject constructor(
                 updateClient.newCall(request).execute().use { response ->
                     val body = response.body?.string() ?: throw Exception("Leere Antwort")
                     val tagName = JSONObject(body).getString("tag_name") // z.B. "v0.2a"
-                    val current = "v${BuildConfig.VERSION_NAME}"
-                    _updateState.value = if (tagName == current)
+                    val current = "v${BuildConfig.VERSION_NAME} (${BuildConfig.VERSION_CODE})"
+                    val currentTag = "v${BuildConfig.VERSION_NAME}"
+                    _updateState.value = if (tagName == currentTag)
                         UpdateState.UpToDate(current)
                     else
                         UpdateState.UpdateAvailable(current, tagName)
