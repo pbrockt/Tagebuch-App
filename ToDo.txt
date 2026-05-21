@@ -138,3 +138,28 @@
    - Themen: Tagebuch & Schreiben, Leben, Gefühle, Mut, Dankbarkeit, Für junge Menschen
    - Dezente Darstellung: kursiv, leicht transparent, mit Anführungszeichen
    - Optional: Spruch antippen → ganzen Spruch in großer Ansicht zeigen
+💡 Monats-Zusammenfassung über dem Kalender (statt Einträge-Zähler im Header)
+   - Einträge-Zähler aus dem Monats-Header entfernen
+   - Stattdessen eine kompakte Zusammenfassungs-Karte direkt ÜBER dem Kalender-Grid:
+     Beispiel: „12 Einträge · 😊 meist gute Laune · 🔥 5 Tage Streak"
+   - Automatisch für den angezeigten Monat berechnet
+   - Häufigste Stimmung aus allen DiaryDay-Einträgen des Monats ermitteln
+   - Aktuellen Streak aus StatsViewModel / DiaryRepository übernehmen
+   - Dezente Darstellung: kleine Karte, Akzentfarbe, ein-zeilig
+   - Wechselt automatisch beim Monatswechsel
+
+💡 Privatsphäre verbessern — PIN sofort bei App-Wechsel oder Bildschirm-Aus
+   - PROBLEM: Aktuell wird onStop() genutzt, aber onStop() feuert NICHT wenn nur
+     der Bildschirm ausgeschaltet wird (nur onPause() wird aufgerufen).
+     Ergebnis: Bildschirm aus → an → App offen ohne PIN-Abfrage.
+   - LÖSUNG A (empfohlen): onPause() mit konfigurierbarem Timeout nutzen:
+     * Zeitstempel beim onPause() speichern
+     * In onResume() prüfen: wenn mehr als X Sekunden vergangen → PIN verlangen
+     * Konfigurierbare Sperrverzögerung in Einstellungen: Sofort / 30 Sek / 1 Min / 5 Min
+   - LÖSUNG B (einfacher): onPause() direkt sperren (ohne Timeout)
+     → Kann nervig sein bei Benachrichtigungen/Dialogen über der App
+   - LÖSUNG C: ProcessLifecycleOwner beobachten (erkennt echten App-Hintergrund
+     zuverlässiger als Activity-Lifecycle)
+   - Zusätzlich: Screen-Off über BroadcastReceiver (ACTION_SCREEN_OFF) abfangen
+     und sofort sperren, unabhängig vom Activity-Lifecycle
+   - Empfehlung: Kombination aus onPause() + Timeout (konfigurierbar, Standard: sofort)
