@@ -53,7 +53,6 @@ fun SettingsScreen(
     val calendarIconMode by viewModel.calendarIconMode.collectAsState()
     val fontChoice by viewModel.fontChoice.collectAsState()
     val ownBirthday by viewModel.ownBirthday.collectAsState()
-    val lockTimeout by viewModel.lockTimeout.collectAsState()
     val periodTracking by viewModel.periodTracking.collectAsState()
     val syncState by viewModel.syncState.collectAsState()
     val testState by viewModel.testState.collectAsState()
