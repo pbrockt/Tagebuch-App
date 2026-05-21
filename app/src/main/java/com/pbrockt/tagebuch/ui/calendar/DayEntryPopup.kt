@@ -63,7 +63,7 @@ fun DayEntryPopup(date: LocalDate, viewModel: CalendarViewModel, onDismiss: () -
         onDismissRequest = onDismiss,
         sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true),
         modifier = Modifier.fillMaxHeight(),
-        windowInsets = androidx.compose.foundation.layout.WindowInsets(0, 0, 0, 0)
+        contentWindowInsets = { androidx.compose.foundation.layout.WindowInsets(0, 0, 0, 0) }
     ) {
         Column(modifier = Modifier.fillMaxSize()) {
 
