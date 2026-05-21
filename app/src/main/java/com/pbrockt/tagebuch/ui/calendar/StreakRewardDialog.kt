@@ -44,12 +44,12 @@ fun StreakRewardDialog(milestone: Int, onDismiss: () -> Unit) {
         List(60) {
             Particle(
                 x = Random.nextFloat(),
-                y = Random.nextFloat(-0.2f, 0.3f),
-                vx = Random.nextFloat(-0.003f, 0.003f),
-                vy = Random.nextFloat(0.004f, 0.01f),
+                y = Random.nextFloat() * 0.5f - 0.2f,
+                vx = Random.nextFloat() * 0.006f - 0.003f,
+                vy = Random.nextFloat() * 0.006f + 0.004f,
                 color = confettiColors.random(),
-                size = Random.nextFloat(8f, 18f),
-                rotation = Random.nextFloat(0f, 360f)
+                size = Random.nextFloat() * 10f + 8f,
+                rotation = Random.nextFloat() * 360f
             )
         }
     }
