@@ -36,16 +36,24 @@ class MainActivity : ComponentActivity() {
     private val mainViewModel: MainViewModel by viewModels()
 
     /**
-     * onStop() wird aufgerufen wenn die Activity komplett verdeckt ist —
-     * z.B. beim App-Wechsel oder wenn eine andere App in den Vordergrund tritt.
+     * Wenn die App verlassen wird (App-Wechsel, Home-Button, Bildschirm-Aus):
+     * App komplett schließen und aus dem Recents-Screen entfernen.
      *
-     * Hier sperren wir die App damit beim nächsten Öffnen der PIN erscheint.
-     * onStop() ist zuverlässiger als onPause() weil es nicht bei jedem
-     * System-Dialog (Benachrichtigungen etc.) feuert.
+     * Vorteile gegenüber isLocked-StateFlow-Ansatz:
+     * - 100% zuverlässig — kein Timing-Problem, kein Coroutine-Delay
+     * - Kein App-Screenshot in Recents sichtbar (Datenschutz)
+     * - Beim nächsten Öffnen → Cold Start → AppLockManager startet
+     *   automatisch mit isLocked=true → PIN-Screen erscheint garantiert
+     *
+     * isChangingConfigurations: Verhindert das Schließen bei Bildschirmrotation.
+     * Bei Rotation wird onStop() ebenfalls aufgerufen, aber dabei wollen
+     * wir die App nicht beenden.
      */
     override fun onStop() {
         super.onStop()
-        appLockManager.lockApp()
+        if (!isChangingConfigurations) {
+            finishAndRemoveTask()
+        }
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
