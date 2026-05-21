@@ -136,35 +136,102 @@ Der gesamte Code wurde von [Claude](https://claude.ai) (Anthropic) geschrieben u
 
 ---
 
-## 📋 Changelog
+## 📋 Vollständiger Changelog
 
-### v0.3c (13)
-- Zurück-Pfeile aus Suche/Statistiken/Einstellungen entfernt
-- Suchergebnisse zeigen lesbaren Text (kein JSON mehr)
-- Klick auf Suchergebnis öffnet Eintrag direkt im Kalender
-- 🔒 Schloss für alte Einträge — PIN nötig zum Bearbeiten
-- Einstellungen-Lücke über Navigationsleiste behoben
+### v0.3c — Hotfix (13)
+**UX-Verbesserungen & Bugfix**
+- 🔒 **Schloss für alte Einträge** — ältere Tage standardmäßig gesperrt, PIN nötig zum Bearbeiten (heutiger Tag immer offen)
+- 🔍 **Suche verbessert** — lesbarer Text statt JSON-Code, formatiertes Datum, Klick öffnet Eintrag direkt im Kalender
+- ◀️ **Zurück-Pfeile entfernt** — Suche, Statistiken und Einstellungen brauchen keinen Zurück-Pfeil mehr (Bottom Nav reicht)
+- 📐 **Lücke behoben** — Einstellungen, Statistiken, Suche und Kalender liefen nicht bis zur Navigationsleiste (doppelte Inset-Berechnung bei verschachtelten Scaffolds)
+
+---
 
 ### v0.3b (12)
-- App schließt sich beim Verlassen komplett (100% zuverlässiger PIN-Schutz)
+**PIN-Schutz komplett überarbeitet**
+- App schließt sich beim Verlassen **vollständig** (`finishAndRemoveTask`) — 100% zuverlässig, kein Timing-Problem mehr
+- App nicht mehr in Recents sichtbar → kein Screenshot sensibler Daten
+
+---
 
 ### v0.3a (11)
-- Perioden-Tracking: 🩸 Start/Aktiv/🔴 Stark/Ende
-- Popup vollflächig über den ganzen Bildschirm
+**Sicherheit & Popup**
+- Perioden-Tracking erweitert: 🩸 Start / 🩸 Aktiv / 🔴 Stark / 🩸 Ende
+- Popup läuft jetzt über den gesamten Bildschirm (keine Navigationsleiste unten sichtbar)
+
+---
 
 ### v0.3 (10)
-- Monats-Zusammenfassung mit Streak-Zähler über dem Kalender
-- Tages-Motivationsspruch (105 Sprüche offline)
-- Streak-Belohnungs-Dialog (Konfetti 🎉)
-- Perioden-Tracking, Seitenfarbe, „An diesem Tag vor X Jahren"
-- Seite als Text teilen
+**Neue Features**
+- 📊 **Monats-Zusammenfassung** über dem Kalender: „12 Einträge · 😊 meist gut · 🔥 5 Tage Streak"
+- 💬 **Tages-Motivationsspruch** unter dem Kalender (105 Sprüche, 100% offline)
+- 🎉 **Streak-Belohnungs-Konfetti** bei 7 🌟 / 30 🏅 / 100 🏆 Tagen in Folge
+- 🩸 **Perioden-Tracking** (optional, in Einstellungen deaktivierbar)
+- 🎨 **Seitenfarbe** pro Seite wählbar (8 Farben)
+- 📅 **„An diesem Tag vor X Jahren"** — Banner wenn Einträge aus Vorjahren existieren
+- 📤 **Seite als Text teilen** — Share-Button im Popup
+- Privatsphäre: Bildschirm-Aus sperrt die App sofort (BroadcastReceiver)
+- Timeout-Einstellung für Sperre (wurde später vereinfacht)
 
-### v0.2b (9) — v0.2 (7)
-- Visuelles Redesign: Gradient, Slide-Animation, Bottom Nav
-- Geburtstage aus Kontakten, Schriftarten, Statistik-Gradient
+---
+
+### v0.2b (9)
+- Versions-Check zeigt Versionscode in Klammern: `v0.2b (9)`
+- Repo öffentlich gestellt → Versions-Check funktioniert
+
+### v0.2a (8)
+- Fix: NavigationBar überdeckte Inhalte in allen Screens
+- Versions-Check in Einstellungen (prüft GitHub Releases API)
+
+### v0.2 (7)
+**Großes visuelles Redesign + neue Features**
+- 🔤 **4 Schriftarten** wählbar: Standard / Serif / Schreibmaschine / Kursiv
+- 🌈 **Gradient-Hintergrund** im Kalender
+- ↔️ **Slide-Animation** beim Monatswechsel (links/rechts)
+- 🎈 **Geburtstage aus Kontakten** im Kalender (🎈 / 👑)
+- 👑 Eigener Geburtstag (TT.MM in Einstellungen)
+- 📳 **Bounce + Shake** beim PIN-Eingeben
+- 🗂️ **Bottom Navigation** (4 Tabs: Kalender · Suche · Statistiken · Einstellungen)
+- 📊 Gradient-Statistik-Karten mit Balkendiagramm
+- 📅 Wochentag groß im Popup-Header
+- ●●● 1–3 Punkte je nach Seitenanzahl im Kalender
+- Kalender-Ansicht umschaltbar: Stimmung / Wetter / Beides
+
+---
+
+### v0.1e (6)
+- Fix: Stimmungs-Emoji als sichtbares Icon im Kalender (war nur als unsichtbare Hintergrundfarbe)
+
+### v0.1d (5)
+- Fix: Kalender-Ansicht aktualisierte sich nach Einstellungsänderung nicht (Lifecycle-Observer)
+
+### v0.1c (4)
+- Fix: `@Serializable` fehlte auf `DiaryPage` und `DiaryDay` → WebDAV-Sync schlug fehl
+- Fix: ProGuard-Regeln für kotlinx.serialization im Release-Build
+
+### v0.1b (3)
+- Fix: App-Crash bei WebDAV (`CancellationException` verschluckt, Response-Leaks, URL-Parsing)
+- Neu: „Verbindung testen"-Button in WebDAV-Einstellungen
+
+### v0.1a (2)
+- Rich-Text-Editor (Fett, Kursiv, 6 Farben — Canvas entfernt)
+- Stimmung/Wetter-Labels bündig ausgerichtet
+- Kalender-Ansicht umschaltbar in Einstellungen
+- versionCode = 2
 
 ### v0.1 (1) — Erste Veröffentlichung
-- Kalender, Editor, PIN, WebDAV, Statistiken, PDF, Suche
+**Komplette App von Grund auf**
+- 📅 Monatskalender mit Eintrags-Markierung
+- ✏️ Editor mit mehreren Seiten pro Tag
+- 😊 Stimmungs- und Wetter-Tracking
+- 🔒 PIN-Schutz mit Versuch-Limit
+- ☁️ WebDAV-Synchronisation mit clientseitiger Verschlüsselung
+- 📊 Statistiken (Streak, Wörter, Monats-Chart)
+- 📄 PDF-Export des aktuellen Monats
+- 🔍 Volltext-Suche
+- 🔔 Tägliche Erinnerungs-Benachrichtigung
+- 6 Akzentfarben + Light/Dark Theme
+- Florale Hintergrund-Dekoration
 
 ---
 
