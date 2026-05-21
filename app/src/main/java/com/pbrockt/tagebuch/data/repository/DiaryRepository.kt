@@ -54,4 +54,9 @@ class DiaryRepository @Inject constructor(private val dao: DiaryDao) {
         ensureDay(date)
         dao.updateWeather(date, weather)
     }
+
+    suspend fun setPeriod(date: String, period: String?) {
+        ensureDay(date)
+        dao.updatePeriod(date, period)
+    }
 }
