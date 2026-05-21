@@ -11,9 +11,8 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import com.pbrockt.tagebuch.data.model.DiaryDay
-import com.pbrockt.tagebuch.data.model.DiaryPage
 import com.pbrockt.tagebuch.ui.editor.EntryEditorScreen
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
@@ -38,22 +37,38 @@ fun DayEntryPopup(
     val dayInfo = allDays.find { it.date == date.toString() }
     var selectedPageIndex by remember { mutableIntStateOf(0) }
 
+    val dayOfWeek = date.format(DateTimeFormatter.ofPattern("EEEE", Locale.GERMAN))
+        .replaceFirstChar { it.uppercase() }
+    val dateFormatted = date.format(DateTimeFormatter.ofPattern("dd. MMMM yyyy", Locale.GERMAN))
+
     ModalBottomSheet(
         onDismissRequest = onDismiss,
         sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true),
         modifier = Modifier.fillMaxHeight(0.92f)
     ) {
         Column(modifier = Modifier.fillMaxSize()) {
-            // Header
+
+            // --- Verbesserter Datum-Header ---
             Row(
-                modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp, vertical = 12.dp),
                 horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
+                verticalAlignment = Alignment.Top
             ) {
-                Text(
-                    date.format(DateTimeFormatter.ofPattern("dd. MMMM yyyy", Locale.GERMAN)),
-                    style = MaterialTheme.typography.titleMedium
-                )
+                Column {
+                    Text(
+                        text = dayOfWeek,
+                        style = MaterialTheme.typography.headlineSmall,
+                        color = MaterialTheme.colorScheme.primary,
+                        fontWeight = FontWeight.Bold
+                    )
+                    Text(
+                        text = dateFormatted,
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
                 Row {
                     if (pages.isNotEmpty()) {
                         IconButton(onClick = {
@@ -65,9 +80,11 @@ fun DayEntryPopup(
                 }
             }
 
-            // Mood + Weather rows — Labels auf gleicher Breite (70.dp)
+            HorizontalDivider()
+
+            // --- Stimmung & Wetter (Labels gleiche Breite) ---
             Row(
-                modifier = Modifier.fillMaxWidth().padding(horizontal = 12.dp),
+                modifier = Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 4.dp),
                 horizontalArrangement = Arrangement.spacedBy(4.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
@@ -84,7 +101,7 @@ fun DayEntryPopup(
                 }
             }
             Row(
-                modifier = Modifier.fillMaxWidth().padding(horizontal = 12.dp),
+                modifier = Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 4.dp),
                 horizontalArrangement = Arrangement.spacedBy(4.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
@@ -103,7 +120,7 @@ fun DayEntryPopup(
 
             HorizontalDivider(modifier = Modifier.padding(vertical = 4.dp))
 
-            // Page tabs
+            // --- Seiten-Tabs ---
             if (pages.isNotEmpty()) {
                 LazyRow(
                     modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp),
@@ -134,7 +151,9 @@ fun DayEntryPopup(
                         Text("Noch kein Eintrag", color = MaterialTheme.colorScheme.onSurfaceVariant)
                         Spacer(Modifier.height(16.dp))
                         Button(onClick = { viewModel.addPageToSelectedDay() }) {
-                            Icon(Icons.Default.Add, null); Spacer(Modifier.width(8.dp)); Text("Eintrag erstellen")
+                            Icon(Icons.Default.Add, null)
+                            Spacer(Modifier.width(8.dp))
+                            Text("Eintrag erstellen")
                         }
                     }
                 }
