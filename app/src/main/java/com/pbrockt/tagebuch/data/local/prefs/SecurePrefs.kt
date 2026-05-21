@@ -77,6 +77,18 @@ class SecurePrefs @Inject constructor(@ApplicationContext context: Context) {
         get() = prefs.getString(KEY_CALENDAR_ICON_MODE, CALENDAR_MODE_MOOD) ?: CALENDAR_MODE_MOOD
         set(value) = prefs.edit().putString(KEY_CALENDAR_ICON_MODE, value).apply()
 
+    var fontChoice: String
+        get() = prefs.getString(KEY_FONT_CHOICE, FONT_DEFAULT) ?: FONT_DEFAULT
+        set(value) = prefs.edit().putString(KEY_FONT_CHOICE, value).apply()
+
+    var ownBirthdayDate: String
+        get() = prefs.getString(KEY_OWN_BIRTHDAY, "") ?: ""
+        set(value) = prefs.edit().putString(KEY_OWN_BIRTHDAY, value).apply()
+
+    var contactsBirthdaysEnabled: Boolean
+        get() = prefs.getBoolean(KEY_CONTACTS_BIRTHDAYS, false)
+        set(value) = prefs.edit().putBoolean(KEY_CONTACTS_BIRTHDAYS, value).apply()
+
     companion object {
         const val KEY_PIN_HASH = "pin_hash"
         const val KEY_BIOMETRIC = "biometric_enabled"
@@ -92,6 +104,9 @@ class SecurePrefs @Inject constructor(@ApplicationContext context: Context) {
         const val KEY_REMINDER_HOUR = "reminder_hour"
         const val KEY_REMINDER_MINUTE = "reminder_minute"
         const val KEY_CALENDAR_ICON_MODE = "calendar_icon_mode"
+        const val KEY_FONT_CHOICE = "font_choice"
+        const val KEY_OWN_BIRTHDAY = "own_birthday_date"
+        const val KEY_CONTACTS_BIRTHDAYS = "contacts_birthdays_enabled"
 
         const val AUTH_NONE = "none"
         const val AUTH_PIN = "pin"
@@ -111,5 +126,10 @@ class SecurePrefs @Inject constructor(@ApplicationContext context: Context) {
         const val CALENDAR_MODE_MOOD = "mood"
         const val CALENDAR_MODE_WEATHER = "weather"
         const val CALENDAR_MODE_BOTH = "both"
+
+        const val FONT_DEFAULT = "default"
+        const val FONT_SERIF = "serif"
+        const val FONT_MONO = "mono"
+        const val FONT_CURSIVE = "cursive"
     }
 }
