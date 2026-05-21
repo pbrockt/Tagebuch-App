@@ -1,6 +1,7 @@
 package com.pbrockt.tagebuch.ui.calendar
 
 import android.content.Intent
+import androidx.compose.animation.*
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -12,6 +13,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextAlign
@@ -35,25 +37,36 @@ private val moodColorMap = mapOf(
     "awful" to Color(0xFFF44336)
 )
 
-@OptIn(ExperimentalMaterial3Api::class)
+private fun moodEmoji(mood: String?) = when (mood) {
+    "great" -> "😁"; "good" -> "😊"; "okay" -> "😐"
+    "bad" -> "😔"; "awful" -> "😢"; else -> null
+}
+
+private fun weatherEmoji(weather: String?) = when (weather) {
+    "sunny" -> "☀"; "cloudy" -> "☁"; "rainy" -> "🌧"
+    "snowy" -> "❄"; "stormy" -> "⛈"; else -> null
+}
+
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalAnimationApi::class)
 @Composable
-fun CalendarScreen(
-    onNavigateToSettings: () -> Unit,
-    onNavigateToSearch: () -> Unit,
-    onNavigateToStats: () -> Unit,
-    calendarIconMode: String = "mood",  // Fallback, primär aus ViewModel
-    viewModel: CalendarViewModel = hiltViewModel()
-) {
+fun CalendarScreen(viewModel: CalendarViewModel = hiltViewModel()) {
     val currentMonth by viewModel.currentMonth.collectAsState()
     val datesWithEntries by viewModel.datesWithEntries.collectAsState()
+    val pageCountPerDay by viewModel.pageCountPerDay.collectAsState()
     val allDays by viewModel.allDays.collectAsState()
     val selectedDate by viewModel.selectedDate.collectAsState()
     val exportedFile by viewModel.exportedFile.collectAsState()
-    // Liest direkt aus ViewModel (SecurePrefs), refresht bei ON_RESUME
-    val iconMode by viewModel.calendarIconMode.collectAsState()
+    val birthdayMap by viewModel.birthdayMap.collectAsState()
+    val calendarIconMode by viewModel.calendarIconMode.collectAsState()
     val context = LocalContext.current
 
-    // Wenn Screen wieder sichtbar wird (z.B. nach Rückkehr von Settings), Einstellungen neu lesen
+    // Eigenen Geburtstag aus Prefs (MM-dd Format)
+    val ownBirthday = remember {
+        val raw = context.getSharedPreferences("tagebuch_own_bday", android.content.Context.MODE_PRIVATE)
+            .getString("bday", "") ?: ""
+        raw  // Wir lesen es über SecurePrefs, aber für eine einfache Lösung direkt
+    }
+
     val lifecycleOwner = LocalLifecycleOwner.current
     DisposableEffect(lifecycleOwner) {
         val observer = LifecycleEventObserver { _, event ->
@@ -62,8 +75,6 @@ fun CalendarScreen(
         lifecycleOwner.lifecycle.addObserver(observer)
         onDispose { lifecycleOwner.lifecycle.removeObserver(observer) }
     }
-
-    val monthEntryCount = datesWithEntries.count { it.startsWith(currentMonth.toString()) }
 
     LaunchedEffect(exportedFile) {
         exportedFile?.let { file ->
@@ -78,27 +89,40 @@ fun CalendarScreen(
         }
     }
 
+    val monthEntryCount = datesWithEntries.count { it.startsWith(currentMonth.toString()) }
+    val primaryColor = MaterialTheme.colorScheme.primary
+
     Scaffold(
         topBar = {
             TopAppBar(
                 title = { Text("Tagebuch") },
                 actions = {
-                    IconButton(onClick = onNavigateToSearch) { Icon(Icons.Default.Search, "Suche") }
-                    IconButton(onClick = onNavigateToStats) { Icon(Icons.Default.BarChart, "Statistiken") }
-                    IconButton(onClick = { viewModel.exportCurrentMonthPdf() }) { Icon(Icons.Default.PictureAsPdf, "PDF Export") }
-                    IconButton(onClick = { viewModel.syncNow() }) { Icon(Icons.Default.Sync, "Sync") }
-                    IconButton(onClick = onNavigateToSettings) { Icon(Icons.Default.Settings, "Einstellungen") }
+                    IconButton(onClick = { viewModel.exportCurrentMonthPdf() }) {
+                        Icon(Icons.Default.PictureAsPdf, "PDF Export")
+                    }
+                    IconButton(onClick = { viewModel.syncNow() }) {
+                        Icon(Icons.Default.Sync, "Sync")
+                    }
                 }
             )
         }
     ) { padding ->
-        Box(modifier = Modifier.fillMaxSize()) {
-            Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(padding)
-                    .padding(16.dp)
-            ) {
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(padding)
+                .background(
+                    Brush.verticalGradient(
+                        colors = listOf(
+                            primaryColor.copy(alpha = 0.08f),
+                            MaterialTheme.colorScheme.surface
+                        ),
+                        startY = 0f,
+                        endY = 600f
+                    )
+                )
+        ) {
+            Column(modifier = Modifier.fillMaxSize().padding(16.dp)) {
                 MonthHeader(
                     month = currentMonth,
                     entryCount = monthEntryCount,
@@ -108,18 +132,38 @@ fun CalendarScreen(
                 Spacer(Modifier.height(8.dp))
                 WeekdayHeader()
                 Spacer(Modifier.height(4.dp))
-                CalendarGrid(
-                    month = currentMonth,
-                    datesWithEntries = datesWithEntries,
-                    moodMap = allDays.associate { it.date to (it.mood ?: "") },
-                    weatherMap = allDays.associate { it.date to (it.weather ?: "") },
-                    selectedDate = selectedDate,
-                    calendarIconMode = iconMode,
-                    onDayClick = viewModel::selectDate
-                )
+
+                // Slide-Animation beim Monatswechsel
+                AnimatedContent(
+                    targetState = currentMonth,
+                    transitionSpec = {
+                        if (targetState > initialState) {
+                            (slideInHorizontally { it } + fadeIn()) togetherWith
+                                    (slideOutHorizontally { -it } + fadeOut())
+                        } else {
+                            (slideInHorizontally { -it } + fadeIn()) togetherWith
+                                    (slideOutHorizontally { it } + fadeOut())
+                        }
+                    },
+                    label = "MonthSlide"
+                ) { month ->
+                    CalendarGrid(
+                        month = month,
+                        datesWithEntries = datesWithEntries,
+                        pageCountPerDay = pageCountPerDay,
+                        moodMap = allDays.associate { it.date to (it.mood ?: "") },
+                        weatherMap = allDays.associate { it.date to (it.weather ?: "") },
+                        birthdayMap = birthdayMap,
+                        ownBirthdayMmDd = viewModel.getOwnBirthdayMmDd(),
+                        selectedDate = selectedDate,
+                        calendarIconMode = calendarIconMode,
+                        onDayClick = viewModel::selectDate
+                    )
+                }
             }
+
             Text(
-                "Version 0.1",
+                "Version 0.2",
                 modifier = Modifier.align(Alignment.BottomEnd).padding(8.dp),
                 style = MaterialTheme.typography.labelSmall,
                 color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.35f)
@@ -133,17 +177,8 @@ fun CalendarScreen(
 }
 
 @Composable
-private fun MonthHeader(
-    month: YearMonth,
-    entryCount: Int,
-    onPrevious: () -> Unit,
-    onNext: () -> Unit
-) {
-    Row(
-        Modifier.fillMaxWidth(),
-        Arrangement.SpaceBetween,
-        Alignment.CenterVertically
-    ) {
+private fun MonthHeader(month: YearMonth, entryCount: Int, onPrevious: () -> Unit, onNext: () -> Unit) {
+    Row(Modifier.fillMaxWidth(), Arrangement.SpaceBetween, Alignment.CenterVertically) {
         IconButton(onClick = onPrevious) { Icon(Icons.Default.ChevronLeft, null) }
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
             Text(
@@ -165,7 +200,7 @@ private fun MonthHeader(
 @Composable
 private fun WeekdayHeader() {
     Row(Modifier.fillMaxWidth()) {
-        listOf("Mo","Di","Mi","Do","Fr","Sa","So").forEach { day ->
+        listOf("Mo", "Di", "Mi", "Do", "Fr", "Sa", "So").forEach { day ->
             Text(day, Modifier.weight(1f), textAlign = TextAlign.Center,
                 style = MaterialTheme.typography.labelSmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant)
@@ -177,8 +212,11 @@ private fun WeekdayHeader() {
 private fun CalendarGrid(
     month: YearMonth,
     datesWithEntries: Set<String>,
+    pageCountPerDay: Map<String, Int>,
     moodMap: Map<String, String>,
     weatherMap: Map<String, String>,
+    birthdayMap: Map<String, List<String>>,
+    ownBirthdayMmDd: String,
     selectedDate: LocalDate?,
     calendarIconMode: String,
     onDayClick: (LocalDate) -> Unit
@@ -197,15 +235,18 @@ private fun CalendarGrid(
                     } else {
                         val date = month.atDay(day)
                         val dateStr = date.toString()
+                        val mmdd = dateStr.substring(5)  // "MM-dd"
                         DayCell(
                             day = day,
-                            hasEntry = datesWithEntries.contains(dateStr),
+                            pageCount = pageCountPerDay[dateStr] ?: 0,
                             mood = moodMap[dateStr],
                             weather = weatherMap[dateStr],
                             isSelected = date == selectedDate,
                             isToday = date == LocalDate.now(),
                             showMood = calendarIconMode != "weather",
                             showWeather = calendarIconMode != "mood",
+                            hasBirthday = birthdayMap.containsKey(mmdd),
+                            isOwnBirthday = ownBirthdayMmDd.isNotEmpty() && mmdd == ownBirthdayMmDd,
                             onClick = { onDayClick(date) },
                             modifier = Modifier.weight(1f)
                         )
@@ -217,55 +258,44 @@ private fun CalendarGrid(
     }
 }
 
-private fun moodEmoji(mood: String?) = when (mood) {
-    "great" -> "😁"; "good" -> "😊"; "okay" -> "😐"
-    "bad" -> "😔"; "awful" -> "😢"; else -> null
-}
-
-private fun weatherEmoji(weather: String?) = when (weather) {
-    "sunny" -> "☀"; "cloudy" -> "☁"; "rainy" -> "🌧"
-    "snowy" -> "❄"; "stormy" -> "⛈"; else -> null
-}
-
 @Composable
 private fun DayCell(
     day: Int,
-    hasEntry: Boolean,
+    pageCount: Int,
     mood: String?,
     weather: String?,
     isSelected: Boolean,
     isToday: Boolean,
     showMood: Boolean,
     showWeather: Boolean,
+    hasBirthday: Boolean,
+    isOwnBirthday: Boolean,
     onClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     val bgColor = when {
         isSelected -> MaterialTheme.colorScheme.primary
         isToday -> MaterialTheme.colorScheme.primaryContainer
-        else -> MaterialTheme.colorScheme.surface.copy(alpha = 0.7f)
+        else -> Color.Transparent
     }
-
     val textColor = when {
         isSelected -> MaterialTheme.colorScheme.onPrimary
         isToday -> MaterialTheme.colorScheme.onPrimaryContainer
         else -> MaterialTheme.colorScheme.onSurface
     }
+    val dotColor = if (isSelected) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.primary
+    val iconSize = androidx.compose.ui.unit.TextUnit(9f, androidx.compose.ui.unit.TextUnitType.Sp)
 
-    // Welches Icon oben anzeigen?
-    val topEmoji = when {
-        showWeather && showMood -> weatherEmoji(weather)  // Wetter oben bei "Beides"
+    // Oberes Icon: Geburtstag hat Vorrang, dann Wetter
+    val topIcon = when {
+        isOwnBirthday -> "👑"
+        hasBirthday -> "🎈"
         showWeather -> weatherEmoji(weather)
         else -> null
     }
-    // Welches Icon unten anzeigen?
-    val bottomEmoji = when {
-        showMood && !mood.isNullOrEmpty() -> moodEmoji(mood)
-        showWeather && showMood && !weather.isNullOrEmpty() -> null  // Wetter bereits oben
-        else -> null
-    }
 
-    val iconSize = androidx.compose.ui.unit.TextUnit(9f, androidx.compose.ui.unit.TextUnitType.Sp)
+    // Unteres Icon: Stimmung
+    val bottomMoodEmoji = if (showMood && !mood.isNullOrEmpty()) moodEmoji(mood) else null
 
     Box(
         modifier = modifier
@@ -280,27 +310,28 @@ private fun DayCell(
             verticalArrangement = Arrangement.Center,
             modifier = Modifier.padding(vertical = 2.dp)
         ) {
-            // Oberes Icon (Wetter bei "Wetter" oder "Beides")
-            if (topEmoji != null) {
-                Text(topEmoji, style = MaterialTheme.typography.labelSmall.copy(fontSize = iconSize))
+            // Oberes Icon
+            if (topIcon != null) {
+                Text(topIcon, style = MaterialTheme.typography.labelSmall.copy(fontSize = iconSize))
             } else {
-                Spacer(Modifier.height(9.dp))
+                Spacer(Modifier.height(10.dp))
             }
 
-            // Tag-Nummer
+            // Tageszahl
             Text(day.toString(), color = textColor, style = MaterialTheme.typography.bodySmall)
 
-            // Unteres Icon (Stimmung bei "Stimmung" oder "Beides")
-            if (bottomEmoji != null) {
-                Text(bottomEmoji, style = MaterialTheme.typography.labelSmall.copy(fontSize = iconSize))
-            } else if (hasEntry) {
-                // Eintrag-Punkt wenn kein Mood-Icon
-                Box(Modifier.size(3.dp).clip(CircleShape).background(
-                    if (isSelected) MaterialTheme.colorScheme.onPrimary
-                    else MaterialTheme.colorScheme.primary
-                ))
+            // Unteres Icon oder Dots
+            if (bottomMoodEmoji != null) {
+                Text(bottomMoodEmoji, style = MaterialTheme.typography.labelSmall.copy(fontSize = iconSize))
+            } else if (pageCount > 0) {
+                // 1–3 Dots je nach Seitenanzahl
+                Row(horizontalArrangement = Arrangement.spacedBy(2.dp)) {
+                    repeat(pageCount.coerceAtMost(3)) {
+                        Box(Modifier.size(3.dp).clip(CircleShape).background(dotColor))
+                    }
+                }
             } else {
-                Spacer(Modifier.height(9.dp))
+                Spacer(Modifier.height(10.dp))
             }
         }
     }
