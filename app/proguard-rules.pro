@@ -66,6 +66,9 @@
 # Compose
 -keep class androidx.compose.** { *; }
 
+# BuildConfig
+-keep class com.pbrockt.tagebuch.BuildConfig { *; }
+
 # General
 -keepattributes SourceFile, LineNumberTable
 -keep public class * extends java.lang.Exception
