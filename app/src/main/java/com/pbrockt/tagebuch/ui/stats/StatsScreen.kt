@@ -6,8 +6,6 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -27,7 +25,7 @@ import java.util.Locale
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun StatsScreen(
-    onNavigateBack: () -> Unit,
+    // Kein onNavigateBack mehr — Bottom Navigation übernimmt das
     viewModel: StatsViewModel = hiltViewModel()
 ) {
     val stats by viewModel.stats.collectAsState()
@@ -36,12 +34,8 @@ fun StatsScreen(
 
     Scaffold(
         topBar = {
-            TopAppBar(
-                title = { Text("Statistiken") },
-                navigationIcon = {
-                    IconButton(onClick = onNavigateBack) { Icon(Icons.Default.ArrowBack, null) }
-                }
-            )
+            TopAppBar(title = { Text("Statistiken") })
+            // Kein Zurück-Pfeil — Navigation erfolgt über Bottom Bar
         }
     ) { padding ->
         Column(
@@ -52,7 +46,6 @@ fun StatsScreen(
                 .padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            // Gradient-Karten
             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                 GradientStatCard("🔥 Streak", "${stats.currentStreak} Tage", primary, Modifier.weight(1f))
                 GradientStatCard("🏆 Rekord", "${stats.longestStreak} Tage", primary, Modifier.weight(1f))
@@ -62,18 +55,12 @@ fun StatsScreen(
                 GradientStatCard("✍️ Wörter", "${stats.totalWords}", primary, Modifier.weight(1f))
             }
 
-            // Monats-Chart
             if (stats.monthCounts.isNotEmpty()) {
                 SectionTitle("Einträge pro Monat")
-                MonthlyChart(
-                    monthCounts = stats.monthCounts,
-                    primaryColor = primary,
-                    surfaceColor = surface,
-                    modifier = Modifier.fillMaxWidth().height(160.dp)
-                )
+                MonthlyChart(stats.monthCounts, primary, surface,
+                    Modifier.fillMaxWidth().height(160.dp))
             }
 
-            // Stimmungsverteilung
             if (stats.moodCounts.isNotEmpty()) {
                 SectionTitle("Stimmungsverteilung")
                 val moodOrder = listOf("great","good","okay","bad","awful")
@@ -89,12 +76,9 @@ fun StatsScreen(
                 val total = stats.moodCounts.values.sum().toFloat()
                 moodOrder.filter { stats.moodCounts.containsKey(it) }.forEach { mood ->
                     val count = stats.moodCounts[mood] ?: 0
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(8.dp)
-                    ) {
-                        Text(moodLabels[mood] ?: mood, modifier = Modifier.width(120.dp),
+                    Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        Text(moodLabels[mood] ?: mood, Modifier.width(120.dp),
                             style = MaterialTheme.typography.bodyMedium)
                         LinearProgressIndicator(
                             progress = { count / total },
@@ -113,13 +97,10 @@ fun StatsScreen(
 @Composable
 private fun GradientStatCard(label: String, value: String, primary: Color, modifier: Modifier = Modifier) {
     Box(
-        modifier = modifier
-            .height(90.dp)
+        modifier = modifier.height(90.dp)
             .background(
-                brush = Brush.horizontalGradient(
-                    colors = listOf(primary.copy(alpha = 0.15f), primary.copy(alpha = 0.03f))
-                ),
-                shape = RoundedCornerShape(16.dp)
+                Brush.horizontalGradient(listOf(primary.copy(alpha = 0.15f), primary.copy(alpha = 0.03f))),
+                RoundedCornerShape(16.dp)
             )
             .padding(16.dp),
         contentAlignment = Alignment.Center
@@ -133,12 +114,7 @@ private fun GradientStatCard(label: String, value: String, primary: Color, modif
 }
 
 @Composable
-private fun MonthlyChart(
-    monthCounts: Map<String, Int>,
-    primaryColor: Color,
-    surfaceColor: Color,
-    modifier: Modifier = Modifier
-) {
+private fun MonthlyChart(monthCounts: Map<String, Int>, primaryColor: Color, surfaceColor: Color, modifier: Modifier = Modifier) {
     val now = YearMonth.now()
     val months = (5 downTo 0).map { now.minusMonths(it.toLong()) }
     val maxCount = months.maxOf { monthCounts[it.toString()] ?: 0 }.coerceAtLeast(1)
@@ -155,9 +131,8 @@ private fun MonthlyChart(
                 if (count > 0) {
                     drawRect(
                         brush = Brush.verticalGradient(
-                            colors = listOf(primaryColor, primaryColor.copy(alpha = 0.6f)),
-                            startY = size.height - barHeight,
-                            endY = size.height
+                            listOf(primaryColor, primaryColor.copy(alpha = 0.6f)),
+                            startY = size.height - barHeight, endY = size.height
                         ),
                         topLeft = Offset(x, size.height - barHeight),
                         size = Size(barWidth, barHeight)
@@ -167,11 +142,9 @@ private fun MonthlyChart(
         }
         Row(Modifier.fillMaxWidth()) {
             months.forEach { month ->
-                Text(
-                    text = month.month.getDisplayName(TextStyle.SHORT, Locale.GERMAN),
-                    modifier = Modifier.weight(1f), textAlign = TextAlign.Center,
-                    fontSize = 10.sp, color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
+                Text(month.month.getDisplayName(TextStyle.SHORT, Locale.GERMAN),
+                    Modifier.weight(1f), textAlign = TextAlign.Center,
+                    fontSize = 10.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
         }
     }
