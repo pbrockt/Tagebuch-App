@@ -11,7 +11,7 @@ import net.sqlcipher.database.SupportFactory
 
 @Database(
     entities = [DiaryDay::class, DiaryPage::class],
-    version = 2,
+    version = 3,
     exportSchema = false
 )
 abstract class TagebuchDatabase : RoomDatabase() {
