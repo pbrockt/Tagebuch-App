@@ -163,3 +163,10 @@
    - Zusätzlich: Screen-Off über BroadcastReceiver (ACTION_SCREEN_OFF) abfangen
      und sofort sperren, unabhängig vom Activity-Lifecycle
    - Empfehlung: Kombination aus onPause() + Timeout (konfigurierbar, Standard: sofort)
+💡 Streak-Zähler sichtbar im Kalender-Screen
+   - Aktuellen Streak prominent im Hauptbildschirm anzeigen (nicht nur in Statistiken)
+   - Mögliche Position: neben/unter der Monats-Zusammenfassung oder in der TopBar
+   - Beispiel: 🔥 5 — klein, aber sichtbar
+   - Wenn Streak = 0: neutral (kein Feuer-Emoji) oder motivierender Text „Fang heute an!"
+   - Wenn neuer Rekord: kurze Hervorhebung (z.B. goldene Farbe)
+   - Streak-Berechnung aus DiaryRepository (schon in StatsViewModel vorhanden → wiederverwenden)
