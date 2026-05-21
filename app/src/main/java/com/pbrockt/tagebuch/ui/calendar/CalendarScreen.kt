@@ -162,12 +162,6 @@ fun CalendarScreen(viewModel: CalendarViewModel = hiltViewModel()) {
                 }
             }
 
-            Text(
-                "Version 0.2",
-                modifier = Modifier.align(Alignment.BottomEnd).padding(8.dp),
-                style = MaterialTheme.typography.labelSmall,
-                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.35f)
-            )
         }
     }
 
