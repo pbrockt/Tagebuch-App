@@ -23,6 +23,7 @@ data class DiaryPage(
     val pageIndex: Int = 0,
     val content: String = "",
     val mediaJson: String = "[]",
+    val pageColor: String? = null,  // Hex-Farbe z.B. "#FFF9C4" oder null = Standard
     val createdAt: Long = System.currentTimeMillis(),
     val updatedAt: Long = System.currentTimeMillis(),
     val syncedAt: Long? = null
