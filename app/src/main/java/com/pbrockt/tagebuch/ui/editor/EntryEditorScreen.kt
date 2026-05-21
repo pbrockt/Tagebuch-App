@@ -82,6 +82,7 @@ private val TEXT_COLORS = listOf<String?>(null, "E53935", "1E88E5", "43A047", "F
 fun EntryEditorScreen(
     page: DiaryPage,
     onPageChanged: (DiaryPage) -> Unit,
+    readOnly: Boolean = false,  // true = Nur-Lesen-Modus für alte gesperrte Einträge
     modifier: Modifier = Modifier
 ) {
     var content by remember(page.id) { mutableStateOf(loadContent(page.content)) }
@@ -125,7 +126,8 @@ fun EntryEditorScreen(
     Column(modifier = modifier) {
 
         // --- Formatierungs-Toolbar ---
-        Surface(tonalElevation = 2.dp) {
+        // Toolbar nur im Edit-Modus anzeigen
+        if (!readOnly) Surface(tonalElevation = 2.dp) {
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -183,12 +185,29 @@ fun EntryEditorScreen(
             }
         }
 
-        HorizontalDivider()
+        if (!readOnly) HorizontalDivider()
+
+        // Hinweis im Nur-Lesen-Modus
+        if (readOnly) {
+            Surface(color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)) {
+                Row(Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 6.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Icon(Icons.Default.Lock, null, modifier = Modifier.size(14.dp),
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant)
+                    Text("Nur Lesen — Schloss antippen zum Bearbeiten",
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant)
+                }
+            }
+            HorizontalDivider()
+        }
 
         // --- Texteditor mit AnnotatedString ---
         BasicTextField(
             value = tfv,
             onValueChange = { newTfv ->
+                if (readOnly) return@BasicTextField  // Im Nur-Lesen-Modus keine Änderungen erlauben
                 val newText = newTfv.text
                 val adjustedSpans = content.spans.mapNotNull { span ->
                     val newEnd = span.end.coerceAtMost(newText.length)
