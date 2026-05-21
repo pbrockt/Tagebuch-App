@@ -5,12 +5,15 @@ import android.content.pm.PackageManager
 import android.os.Build
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import android.content.Intent
+import android.net.Uri
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
@@ -66,6 +69,11 @@ fun SettingsScreen(
     var passVisible by remember { mutableStateOf(false) }
     var reminderHourInput by remember(reminderHour) { mutableStateOf(reminderHour.toString()) }
     var reminderMinuteInput by remember(reminderMinute) { mutableStateOf(reminderMinute.toString().padStart(2, '0')) }
+    val updateState by viewModel.updateState.collectAsState()
+    val context = LocalContext.current
+
+    // Update-Check beim Öffnen des Screens
+    LaunchedEffect(Unit) { viewModel.checkForUpdate() }
 
     Scaffold(
         topBar = {
@@ -80,6 +88,9 @@ fun SettingsScreen(
                 .verticalScroll(rememberScrollState()).padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
+            // --- VERSIONS-KARTE ---
+            VersionCard(updateState = updateState, context = context)
+
             // --- PIN ---
             SectionTitle("PIN-Schutz")
             if (authMethod != SecurePrefs.AUTH_NONE) {
@@ -270,6 +281,62 @@ fun SettingsScreen(
             Text("Version 0.1a", style = MaterialTheme.typography.labelSmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 modifier = Modifier.fillMaxWidth())
+        }
+    }
+}
+
+@Composable
+private fun VersionCard(updateState: UpdateState, context: android.content.Context) {
+    val releasesUrl = "https://github.com/pbrockt/Tagebuch-App/releases/latest"
+    Box(
+        modifier = androidx.compose.ui.Modifier
+            .fillMaxWidth()
+            .background(
+                color = when (updateState) {
+                    is UpdateState.UpdateAvailable -> MaterialTheme.colorScheme.tertiaryContainer
+                    is UpdateState.UpToDate -> MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.4f)
+                    else -> MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.4f)
+                },
+                shape = RoundedCornerShape(12.dp)
+            )
+            .padding(12.dp)
+    ) {
+        when (updateState) {
+            is UpdateState.Loading -> Row(verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                CircularProgressIndicator(modifier = androidx.compose.ui.Modifier.size(16.dp), strokeWidth = 2.dp)
+                Text("Auf Updates prüfen...", style = MaterialTheme.typography.bodySmall)
+            }
+            is UpdateState.UpToDate -> Row(verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                Icon(Icons.Default.CheckCircle, null, tint = MaterialTheme.colorScheme.primary,
+                    modifier = androidx.compose.ui.Modifier.size(18.dp))
+                Text("Aktuelle Version ${updateState.version}",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onPrimaryContainer)
+            }
+            is UpdateState.UpdateAvailable -> Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                Row(verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Icon(Icons.Default.NewReleases, null, tint = MaterialTheme.colorScheme.tertiary,
+                        modifier = androidx.compose.ui.Modifier.size(18.dp))
+                    Text("🆕 Neue Version ${updateState.latest} verfügbar!",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onTertiaryContainer)
+                }
+                OutlinedButton(
+                    onClick = {
+                        val intent = Intent(Intent.ACTION_VIEW, Uri.parse(releasesUrl))
+                        context.startActivity(intent)
+                    },
+                    modifier = androidx.compose.ui.Modifier.fillMaxWidth(),
+                    contentPadding = PaddingValues(horizontal = 12.dp, vertical = 4.dp)
+                ) { Text("Jetzt herunterladen →", style = MaterialTheme.typography.labelSmall) }
+            }
+            is UpdateState.Error -> Text("Update-Check: ${updateState.msg}",
+                style = MaterialTheme.typography.labelSmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant)
+            is UpdateState.Idle -> {}
         }
     }
 }
