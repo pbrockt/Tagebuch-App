@@ -3,6 +3,7 @@ package com.pbrockt.tagebuch.ui.calendar
 import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.pbrockt.tagebuch.NavigationState
 import com.pbrockt.tagebuch.data.contacts.BirthdayHelper
 import com.pbrockt.tagebuch.data.local.prefs.SecurePrefs
 import com.pbrockt.tagebuch.data.model.DiaryDay
@@ -32,6 +33,7 @@ class CalendarViewModel @Inject constructor(
     private val diaryRepo: DiaryRepository,
     private val syncRepo: SyncRepository,
     private val prefs: SecurePrefs,
+    private val navigationState: NavigationState,
     @ApplicationContext private val context: Context
 ) : ViewModel() {
 
@@ -92,12 +94,19 @@ class CalendarViewModel @Inject constructor(
     val exportedFile: StateFlow<File?> = _exportedFile
 
     val periodTrackingEnabled: Boolean get() = prefs.periodTrackingEnabled
+    val requiresAuth: Boolean get() = prefs.authMethod != SecurePrefs.AUTH_NONE
+    val pinHash: String? get() = prefs.pinHash
 
     init {
-        // Prüfe Streak-Meilenstein beim Start
+        // Streak-Meilensteine beim Start prüfen
         viewModelScope.launch {
-            datesWithEntries.collect { dates ->
-                checkStreakMilestone(dates)
+            datesWithEntries.collect { dates -> checkStreakMilestone(dates) }
+        }
+        // Auf Navigation-Events aus der Suche reagieren
+        viewModelScope.launch {
+            navigationState.pendingOpenDate.collect { date ->
+                _currentMonth.value = YearMonth.parse(date.substring(0, 7))
+                _selectedDate.value = LocalDate.parse(date)
             }
         }
     }
