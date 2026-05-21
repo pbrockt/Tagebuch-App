@@ -277,10 +277,6 @@ fun SettingsScreen(
                 onBirthdaySaved = { viewModel.setOwnBirthday(ownBirthdayInput) }
             )
 
-            Spacer(Modifier.height(8.dp))
-            Text("Version 0.1a", style = MaterialTheme.typography.labelSmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                modifier = Modifier.fillMaxWidth())
         }
     }
 }
