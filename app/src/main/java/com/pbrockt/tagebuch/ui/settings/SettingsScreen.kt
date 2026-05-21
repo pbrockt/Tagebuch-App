@@ -53,6 +53,8 @@ fun SettingsScreen(
     val calendarIconMode by viewModel.calendarIconMode.collectAsState()
     val fontChoice by viewModel.fontChoice.collectAsState()
     val ownBirthday by viewModel.ownBirthday.collectAsState()
+    val lockTimeout by viewModel.lockTimeout.collectAsState()
+    val periodTracking by viewModel.periodTracking.collectAsState()
     val syncState by viewModel.syncState.collectAsState()
     val testState by viewModel.testState.collectAsState()
     val reminderEnabled by viewModel.reminderEnabled.collectAsState()
@@ -114,6 +116,17 @@ fun SettingsScreen(
             } else {
                 OutlinedButton(onClick = { showPinInput = true }, Modifier.fillMaxWidth()) {
                     Text(if (authMethod == SecurePrefs.AUTH_PIN) "PIN ändern" else "4-stelligen PIN festlegen")
+                }
+            }
+
+            // Sperr-Verzögerung
+            Spacer(Modifier.height(4.dp))
+            Text("Sperr-Verzögerung", style = MaterialTheme.typography.labelLarge)
+            val timeoutOptions = listOf(0 to "Sofort", 30 to "30 Sekunden", 60 to "1 Minute", 300 to "5 Minuten")
+            timeoutOptions.forEach { (seconds, label) ->
+                Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+                    RadioButton(selected = lockTimeout == seconds, onClick = { viewModel.setLockTimeout(seconds) })
+                    Spacer(Modifier.width(8.dp)); Text(label, style = MaterialTheme.typography.bodySmall)
                 }
             }
 
@@ -187,6 +200,16 @@ fun SettingsScreen(
                     RadioButton(selected = calendarIconMode == key, onClick = { viewModel.setCalendarIconMode(key) })
                     Spacer(Modifier.width(8.dp)); Text(label, style = MaterialTheme.typography.bodySmall)
                 }
+            }
+
+            Spacer(Modifier.height(4.dp))
+            Row(Modifier.fillMaxWidth(), Arrangement.SpaceBetween, Alignment.CenterVertically) {
+                Column {
+                    Text("Perioden-Tracking", style = MaterialTheme.typography.bodyMedium)
+                    Text("🩸 Periode im Kalender eintragen", style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant)
+                }
+                Switch(checked = periodTracking, onCheckedChange = { viewModel.setPeriodTracking(it) })
             }
 
             HorizontalDivider()
