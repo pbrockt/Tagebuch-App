@@ -10,6 +10,7 @@ data class DiaryDay(
     @PrimaryKey val date: String,
     val mood: String? = null,
     val weather: String? = null,
+    val period: String? = null,  // "start", "active", "end" oder null
     val createdAt: Long = System.currentTimeMillis(),
     val updatedAt: Long = System.currentTimeMillis(),
     val syncedAt: Long? = null
