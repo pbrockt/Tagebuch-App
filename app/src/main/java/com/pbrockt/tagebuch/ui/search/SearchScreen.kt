@@ -62,7 +62,8 @@ fun SearchScreen(
                 }
                 // Kein Zurück-Pfeil — Bottom Navigation übernimmt die Navigation
             )
-        }
+        },
+        contentWindowInsets = androidx.compose.foundation.layout.WindowInsets(0)
     ) { padding ->
         if (query.length < 2) {
             Box(Modifier.fillMaxSize().padding(padding), contentAlignment = Alignment.Center) {
