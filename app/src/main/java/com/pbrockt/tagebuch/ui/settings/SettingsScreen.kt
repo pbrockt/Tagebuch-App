@@ -119,17 +119,6 @@ fun SettingsScreen(
                 }
             }
 
-            // Sperr-Verzögerung
-            Spacer(Modifier.height(4.dp))
-            Text("Sperr-Verzögerung", style = MaterialTheme.typography.labelLarge)
-            val timeoutOptions = listOf(0 to "Sofort", 30 to "30 Sekunden", 60 to "1 Minute", 300 to "5 Minuten")
-            timeoutOptions.forEach { (seconds, label) ->
-                Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-                    RadioButton(selected = lockTimeout == seconds, onClick = { viewModel.setLockTimeout(seconds) })
-                    Spacer(Modifier.width(8.dp)); Text(label, style = MaterialTheme.typography.bodySmall)
-                }
-            }
-
             HorizontalDivider()
 
             // --- DESIGN ---
