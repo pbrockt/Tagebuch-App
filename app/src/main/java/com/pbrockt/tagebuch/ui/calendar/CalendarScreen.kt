@@ -200,7 +200,7 @@ private fun MonthSummaryCard(summary: MonthSummary) {
 private fun DailyQuoteCard() {
     val quote = remember { getDailyQuote() }
     Text(
-        text = "„$quote"",
+        text = "\u201e" + quote + "\u201c",
         style = MaterialTheme.typography.bodySmall.copy(fontStyle = FontStyle.Italic),
         color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.45f),
         textAlign = TextAlign.Center,
