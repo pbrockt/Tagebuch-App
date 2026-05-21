@@ -3,16 +3,30 @@ package com.pbrockt.tagebuch.ui.settings
 import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.pbrockt.tagebuch.BuildConfig
 import com.pbrockt.tagebuch.data.local.prefs.SecurePrefs
 import com.pbrockt.tagebuch.data.repository.SyncRepository
 import com.pbrockt.tagebuch.notifications.ReminderWorker
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
+import okhttp3.OkHttpClient
+import okhttp3.Request
+import org.json.JSONObject
 import java.security.MessageDigest
+import java.util.concurrent.TimeUnit
 import javax.inject.Inject
+
+sealed class UpdateState {
+    object Idle : UpdateState()
+    object Loading : UpdateState()
+    data class UpToDate(val version: String) : UpdateState()
+    data class UpdateAvailable(val current: String, val latest: String) : UpdateState()
+    data class Error(val msg: String) : UpdateState()
+}
 
 @HiltViewModel
 class SettingsViewModel @Inject constructor(
@@ -52,6 +66,37 @@ class SettingsViewModel @Inject constructor(
 
     val syncState = syncRepo.syncState
     val testState = syncRepo.testState
+
+    private val _updateState = MutableStateFlow<UpdateState>(UpdateState.Idle)
+    val updateState: StateFlow<UpdateState> = _updateState
+
+    private val updateClient = OkHttpClient.Builder()
+        .connectTimeout(10, TimeUnit.SECONDS)
+        .readTimeout(10, TimeUnit.SECONDS)
+        .build()
+
+    fun checkForUpdate() {
+        viewModelScope.launch(Dispatchers.IO) {
+            _updateState.value = UpdateState.Loading
+            try {
+                val request = Request.Builder()
+                    .url("https://api.github.com/repos/pbrockt/Tagebuch-App/releases/latest")
+                    .header("Accept", "application/vnd.github.v3+json")
+                    .build()
+                updateClient.newCall(request).execute().use { response ->
+                    val body = response.body?.string() ?: throw Exception("Leere Antwort")
+                    val tagName = JSONObject(body).getString("tag_name") // z.B. "v0.2a"
+                    val current = "v${BuildConfig.VERSION_NAME}"
+                    _updateState.value = if (tagName == current)
+                        UpdateState.UpToDate(current)
+                    else
+                        UpdateState.UpdateAvailable(current, tagName)
+                }
+            } catch (e: Exception) {
+                _updateState.value = UpdateState.Error("Keine Verbindung")
+            }
+        }
+    }
 
     fun setPin(pin: String) {
         prefs.pinHash = sha256(pin); prefs.authMethod = SecurePrefs.AUTH_PIN
