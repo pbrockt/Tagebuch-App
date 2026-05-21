@@ -89,6 +89,20 @@ class SecurePrefs @Inject constructor(@ApplicationContext context: Context) {
         get() = prefs.getBoolean(KEY_CONTACTS_BIRTHDAYS, false)
         set(value) = prefs.edit().putBoolean(KEY_CONTACTS_BIRTHDAYS, value).apply()
 
+    // Sperr-Verzögerung in Sekunden: 0 = sofort, 30, 60, 300
+    var lockTimeoutSeconds: Int
+        get() = prefs.getInt(KEY_LOCK_TIMEOUT, 0)
+        set(value) = prefs.edit().putInt(KEY_LOCK_TIMEOUT, value).apply()
+
+    var periodTrackingEnabled: Boolean
+        get() = prefs.getBoolean(KEY_PERIOD_TRACKING, false)
+        set(value) = prefs.edit().putBoolean(KEY_PERIOD_TRACKING, value).apply()
+
+    // Komma-getrennte Liste bereits gezeigter Streak-Meilensteine, z.B. "7,30"
+    var shownStreakMilestones: String
+        get() = prefs.getString(KEY_STREAK_MILESTONES, "") ?: ""
+        set(value) = prefs.edit().putString(KEY_STREAK_MILESTONES, value).apply()
+
     companion object {
         const val KEY_PIN_HASH = "pin_hash"
         const val KEY_BIOMETRIC = "biometric_enabled"
@@ -107,6 +121,9 @@ class SecurePrefs @Inject constructor(@ApplicationContext context: Context) {
         const val KEY_FONT_CHOICE = "font_choice"
         const val KEY_OWN_BIRTHDAY = "own_birthday_date"
         const val KEY_CONTACTS_BIRTHDAYS = "contacts_birthdays_enabled"
+        const val KEY_LOCK_TIMEOUT = "lock_timeout_seconds"
+        const val KEY_PERIOD_TRACKING = "period_tracking_enabled"
+        const val KEY_STREAK_MILESTONES = "shown_streak_milestones"
 
         const val AUTH_NONE = "none"
         const val AUTH_PIN = "pin"
