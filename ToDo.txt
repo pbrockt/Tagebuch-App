@@ -131,3 +131,10 @@
    - Verschiedene Stufen: 🌟 7 Tage · 🏅 30 Tage · 🏆 100 Tage
    - Einmal pro erreichter Stufe anzeigen (nicht bei jedem Start)
    - Optional: Benachrichtigung wenn neuer Streak-Rekord erreicht
+💡 Tages-Motivationsspruch im Kalender anzeigen
+   - Jeden Tag automatisch ein anderer Spruch unter dem Kalender-Grid
+   - 105 Sprüche offline gespeichert (siehe Motivationssprüche.txt)
+   - Auswahl per Tagesnummer (LocalDate.dayOfYear % anzahl) — kein Zufall, kein Internet
+   - Themen: Tagebuch & Schreiben, Leben, Gefühle, Mut, Dankbarkeit, Für junge Menschen
+   - Dezente Darstellung: kursiv, leicht transparent, mit Anführungszeichen
+   - Optional: Spruch antippen → ganzen Spruch in großer Ansicht zeigen
