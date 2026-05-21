@@ -15,6 +15,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
@@ -39,7 +40,7 @@ import com.pbrockt.tagebuch.ui.theme.accentMap
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SettingsScreen(
-    onNavigateBack: () -> Unit,
+    onThemeChanged: () -> Unit = {},
     viewModel: SettingsViewModel = hiltViewModel()
 ) {
     val authMethod by viewModel.authMethod.collectAsState()
@@ -80,13 +81,15 @@ fun SettingsScreen(
         topBar = {
             TopAppBar(
                 title = { Text("Einstellungen") },
-                navigationIcon = { IconButton(onClick = onNavigateBack) { Icon(Icons.Default.ArrowBack, null) } }
+                // Kein Zurück-Pfeil — Navigation erfolgt über Bottom Bar
             )
         }
     ) { padding ->
         Column(
             modifier = Modifier.fillMaxSize().padding(padding)
-                .verticalScroll(rememberScrollState()).padding(16.dp),
+                .verticalScroll(rememberScrollState())
+                .imePadding()  // Verhindert Lücke über der Navigationsleiste
+                .padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
             // --- VERSIONS-KARTE ---
