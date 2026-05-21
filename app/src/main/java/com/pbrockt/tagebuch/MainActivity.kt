@@ -1,9 +1,5 @@
 package com.pbrockt.tagebuch
 
-import android.content.BroadcastReceiver
-import android.content.Context
-import android.content.Intent
-import android.content.IntentFilter
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -11,6 +7,9 @@ import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
+import androidx.lifecycle.ProcessLifecycleOwner
 import com.pbrockt.tagebuch.navigation.AppNavigation
 import com.pbrockt.tagebuch.ui.auth.AuthScreen
 import com.pbrockt.tagebuch.ui.theme.TagebuchTheme
@@ -23,38 +22,21 @@ class MainActivity : ComponentActivity() {
     @Inject lateinit var appLockManager: AppLockManager
     private val mainViewModel: MainViewModel by viewModels()
 
-    // Sperrt sofort wenn Bildschirm ausgeschaltet wird
-    private val screenOffReceiver = object : BroadcastReceiver() {
-        override fun onReceive(context: Context, intent: Intent) {
-            if (intent.action == Intent.ACTION_SCREEN_OFF) {
-                appLockManager.lockApp()
-            }
-        }
-    }
-
-    override fun onStart() {
-        super.onStart()
-        registerReceiver(screenOffReceiver, IntentFilter(Intent.ACTION_SCREEN_OFF))
-    }
-
-    override fun onStop() {
-        super.onStop()
-        runCatching { unregisterReceiver(screenOffReceiver) }
-    }
-
-    override fun onPause() {
-        super.onPause()
-        appLockManager.onAppPaused()
-    }
-
-    override fun onResume() {
-        super.onResume()
-        appLockManager.onAppResumed()
-    }
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
+
+        // ProcessLifecycleOwner feuert ON_STOP wenn die App WIRKLICH in den
+        // Hintergrund geht (nicht bei System-Dialogen/Benachrichtigungen).
+        // Zuverlässiger als Activity.onPause/onStop für App-Wechsel.
+        ProcessLifecycleOwner.get().lifecycle.addObserver(
+            LifecycleEventObserver { _, event ->
+                if (event == Lifecycle.Event.ON_STOP) {
+                    appLockManager.lockApp()
+                }
+            }
+        )
+
         setContent {
             val themeChoice by mainViewModel.themeChoice.collectAsState()
             val accentColor by mainViewModel.accentColor.collectAsState()
