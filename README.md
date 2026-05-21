@@ -17,8 +17,6 @@
 
 **Eine private, verschlüsselte Tagebuch-App für Android 15+**
 
-> 🤖 *Diese App wurde vollständig durch künstliche Intelligenz ([Claude](https://claude.ai) von Anthropic) entwickelt.*
-
 [![GitHub Release](https://img.shields.io/github/v/release/pbrockt/Tagebuch-App?label=Release&color=purple)](https://github.com/pbrockt/Tagebuch-App/releases/latest)
 [![Build APK](https://github.com/pbrockt/Tagebuch-App/actions/workflows/build.yml/badge.svg)](https://github.com/pbrockt/Tagebuch-App/actions/workflows/build.yml)
 ![Android](https://img.shields.io/badge/Android-15+-green)
@@ -28,7 +26,15 @@
 
 ---
 
-## 📦 Aktuelle Version: 0.2a
+## 💜 Die Geschichte hinter dieser App
+
+Diese App entstand aus einer ganz persönlichen Idee: Ich wollte für **meine Tochter** ein digitales Tagebuch entwickeln — eines, das genau so funktioniert wie wir es uns wünschen. Kein Kompromiss mit fremden Apps, keine unnötigen Features, keine Datenweitergabe. Einfach ihr ganz eigenes, privates Tagebuch.
+
+Da ich kein erfahrener Entwickler bin, habe ich die App **gemeinsam mit der KI [Claude](https://claude.ai) von Anthropic** entwickelt. Claude hat den gesamten Code geschrieben, Fehler behoben und neue Features nach meinen Wünschen umgesetzt — ich habe die Ideen geliefert und Feedback gegeben.
+
+Dieses Projekt ist für mich gleichzeitig eine **Lernreise in die Programmierung**. Ich nutze den gemeinsam entstandenen Code, um Kotlin und Android-Entwicklung zu verstehen und peu à peu selbst darin einzutauchen.
+
+> *„Ich bin der KI sehr dankbar für diese Möglichkeit — eine App nach unseren ganz eigenen Wünschen zu bauen, die meine Tochter jeden Tag nutzt."*
 
 ---
 
@@ -75,41 +81,34 @@
 
 ### ☁️ WebDAV-Synchronisation
 - Sync mit eigenem Server (Nextcloud, ownCloud, etc.)
-- Clientseitige Verschlüsselung (PBKDF2 + AES-GCM) — Server sieht nur verschlüsselte Daten
+- Clientseitige Verschlüsselung (PBKDF2 + AES-GCM)
 - Verbindungs-Test-Button in den Einstellungen
-- Offline-first — funktioniert ohne Verbindung
+- Offline-first
 
 ### 🎨 Design & Anpassung
-- **4 Schriftarten:** Standard (Roboto) · Serif · Schreibmaschine · Kursiv
+- **4 Schriftarten:** Standard · Serif · Schreibmaschine · Kursiv
 - **6 Akzentfarben:** Lila, Blau, Grün, Orange, Rosa, Türkis
 - **Light / Dark / Systemstandard** Theme
 - Material Design 3
 
 ### ⚙️ Einstellungen
-- **Versions-Check** ganz oben — prüft automatisch ob eine neue Version auf GitHub verfügbar ist
-- PIN-Verwaltung, Schriftart, Farbthema, Kalender-Ansicht (Stimmung / Wetter / Beides)
-- Tägliche Erinnerung konfigurieren
-- WebDAV-Server einrichten & testen
-- **Geburtstage:** Kontakte-Berechtigung erteilen + eigenen Geburtstag (TT.MM) eintragen
-- Berechtigungen direkt in der App verwalten (Benachrichtigungen, Kontakte)
-
-### 🗂️ Navigation
-- Bottom Navigation Bar: 🏠 Kalender · 🔍 Suche · 📊 Statistiken · ⚙️ Einstellungen
+- **Versions-Check** — prüft ob eine neue Version auf GitHub verfügbar ist
+- Geburtstage aus Kontakten + eigener Geburtstag (TT.MM)
+- Kalender-Ansicht wählen: Stimmung / Wetter / Beides
+- Berechtigungen direkt in der App verwalten
 
 ---
 
 ## 📱 Installation
 
-### Voraussetzungen
-- Android 15 (API 35) oder höher
-
-### Schritte
 1. **[Neueste Version herunterladen →](https://github.com/pbrockt/Tagebuch-App/releases/latest)**
-2. APK auf das Gerät übertragen
+2. APK auf das Android-Gerät übertragen
 3. **Einstellungen → Sicherheit → Unbekannte Quellen** erlauben
 4. APK installieren
 
-> Direktes Update über ältere Versionen möglich (solange versionCode größer ist).
+> Direktes Update über ältere Versionen möglich (kein Deinstallieren nötig).
+
+**Anforderungen:** Android 15 (API 35) oder höher
 
 ---
 
@@ -131,61 +130,45 @@
 
 ---
 
-## 🤖 KI-Entwicklung
+## 🤖 Entwicklung mit KI
 
-Diese App wurde **vollständig von [Claude](https://claude.ai) (Anthropic)** entwickelt.
+Der gesamte Code dieser App wurde von [Claude](https://claude.ai) (Anthropic) geschrieben. Die Zusammenarbeit lief so:
 
-| | |
-|---|---|
-| **Menschlicher Aufwand** | Anforderungen formulieren + Feedback geben |
-| **KI-Aufwand** | Architektur, Code, Debugging, CI/CD, README, Releases |
+1. Ich habe Anforderungen und Ideen formuliert
+2. Claude hat den Code implementiert, Fehler behoben und erklärt
+3. Ich habe getestet, Feedback gegeben und neue Wünsche geäußert
+4. Wir haben iterativ verbessert — von v0.1 bis heute
+
+Dieses Projekt zeigt, was heute mit KI-Unterstützung möglich ist: Eine vollständige, sichere Android-App — maßgeschneidert für eine ganz persönliche Verwendung.
 
 ---
 
 ## 📋 Changelog
 
-### v0.2a
-- Fix: Bottom-NavigationBar überdeckte Inhalte (NavigationBar-Padding)
-- Neu: Versions-Check in Einstellungen (prüft GitHub Releases API)
+### v0.2b (9)
+- Versions-Check zeigt jetzt Versionscode in Klammern: `v0.2b (9)`
+- Version aus Kalender und Einstellungen entfernt
+- Repo öffentlich gestellt → Versions-Check funktioniert
 
-### v0.2 — Visuelles Redesign + Geburtstage
-- 4 wählbare Schriftarten
-- Gradient-Hintergrund im Kalender, Slide-Animation beim Monatswechsel
-- Geburtstage aus Kontakten (🎈), eigener Geburtstag (👑)
-- Animierte PIN-Dots (Bounce + Shake)
-- Bottom Navigation Bar
-- Gradient-Statistik-Karten
-- 1–3 Dots je nach Seitenanzahl
-- Rich-Text-Formatierung im Editor (Fett, Kursiv, Farben)
-- Foto-Berechtigung entfernt (Feature nicht aktiv)
+### v0.2a (8)
+- Fix: Bottom-NavigationBar überdeckte Inhalte
+- Neu: Versions-Check in Einstellungen
 
-### v0.1e
-- Fix: Stimmungs-Emoji als sichtbares Icon im Kalender (statt unsichtbarer Hintergrundfarbe)
+### v0.2 (7) — Visuelles Redesign + Geburtstage
+- 4 wählbare Schriftarten, Gradient-Hintergrund, Slide-Animation
+- Geburtstage aus Kontakten (🎈 / 👑), Bottom Navigation Bar
+- Animierte PIN-Dots, Rich-Text-Editor, Gradient-Statistiken
 
-### v0.1d
-- Fix: Kalender-Ansicht (Stimmung/Wetter) wurde nach Einstellungsänderung nicht aktualisiert
+### v0.1e (6) — v0.1b (3)
+- Diverse Bugfixes: Stimmungs-Icon, WebDAV-Crash, Serialisierung
 
-### v0.1c
-- Fix: `@Serializable` fehlte auf `DiaryPage` + `DiaryDay` → WebDAV-Sync schlug fehl
-- Fix: ProGuard-Regeln für kotlinx.serialization
-
-### v0.1b
-- Fix: App-Crash bei WebDAV (CancellationException, Response-Leaks, URL-Parsing)
-- Neu: „Verbindung testen"-Button in WebDAV-Einstellungen
-
-### v0.1a
-- Rich-Text-Editor (Canvas entfernt, Fett/Kursiv/Farbe)
-- Stimmung/Wetter-Labels bündig ausgerichtet
-- Kalender-Ansicht umschaltbar (Stimmung / Wetter / Beides) in Einstellungen
-- versionCode = 2
-
-### v0.1 — Erste Veröffentlichung
-- Kalender, Editor, Stimmung & Wetter, PIN-Schutz, WebDAV-Sync, Statistiken, PDF-Export, Suche
+### v0.1 (1) — Erste Veröffentlichung
+- Kalender, Editor, PIN-Schutz, WebDAV-Sync, Statistiken, PDF-Export, Suche
 
 ---
 
 <div align="center">
 
-*Version 0.2a · erstellt mit ❤️ und 🤖 von [Claude](https://claude.ai) (Anthropic)*
+*Entwickelt mit ❤️ für meine Tochter — mit Hilfe von 🤖 [Claude](https://claude.ai) (Anthropic)*
 
 </div>
