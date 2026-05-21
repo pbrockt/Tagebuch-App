@@ -68,7 +68,7 @@ fun AppNavigation(onThemeChanged: () -> Unit = {}) {
         NavHost(
             navController = navController,
             startDestination = Screen.Calendar.route,
-            modifier = androidx.compose.ui.Modifier.navigationBarsPadding()
+            modifier = androidx.compose.ui.Modifier
         ) {
             composable(Screen.Calendar.route) {
                 CalendarScreen()
