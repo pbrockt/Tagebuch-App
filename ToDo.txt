@@ -124,3 +124,10 @@
 💡 „An diesem Tag vor X Jahren" — alte Einträge beim Öffnen eines Datums zeigen
 💡 PIN-Versuch-Limit konfigurierbar (Anzahl + Wartezeit)
 💡 Seitenfarbe pro Seite wählbar (8 Hintergrundfarben)
+💡 Streak-Belohnungs-Screen
+   - Nach 7 / 30 / 100 Tagen in Folge eine Belohnungs-Animation zeigen
+   - Konfetti-Animation mit Compose (z.B. kotlinx-coroutines + Canvas-Partikel)
+   - Glückwunsch-Text: „7 Tage in Folge! Weiter so! 🎉"
+   - Verschiedene Stufen: 🌟 7 Tage · 🏅 30 Tage · 🏆 100 Tage
+   - Einmal pro erreichter Stufe anzeigen (nicht bei jedem Start)
+   - Optional: Benachrichtigung wenn neuer Streak-Rekord erreicht
