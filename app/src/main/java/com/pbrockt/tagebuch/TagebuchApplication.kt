@@ -12,19 +12,23 @@ import javax.inject.Inject
 @HiltAndroidApp
 class TagebuchApplication : Application() {
 
+    // Lazy via Hilt — sicher auch wenn Receiver früh feuert
     @Inject lateinit var appLockManager: AppLockManager
 
-    // Im Application registriert → immer aktiv, auch wenn Activity pausiert ist
     private val screenOffReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context, intent: Intent) {
             if (intent.action == Intent.ACTION_SCREEN_OFF) {
-                appLockManager.lockApp()
+                // Läuft auf Main-Thread, direkter Zugriff sicher
+                if (::appLockManager.isInitialized) {
+                    appLockManager.lockApp()
+                }
             }
         }
     }
 
     override fun onCreate() {
         super.onCreate()
+        // Nach super.onCreate() ist Hilt-Injection abgeschlossen
         NotificationHelper.createChannel(this)
         registerReceiver(screenOffReceiver, IntentFilter(Intent.ACTION_SCREEN_OFF))
     }
