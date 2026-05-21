@@ -20,7 +20,9 @@ import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.pbrockt.tagebuch.ui.editor.EntryEditorScreen
+import java.security.MessageDigest
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import java.util.Locale
@@ -48,6 +50,11 @@ fun DayEntryPopup(date: LocalDate, viewModel: CalendarViewModel, onDismiss: () -
     val dayInfo = allDays.find { it.date == date.toString() }
     var selectedPageIndex by remember { mutableIntStateOf(0) }
     val context = LocalContext.current
+
+    // Schloss-Logik: Heutiger Tag immer editierbar, ältere Einträge standardmäßig gesperrt
+    val isToday = date == LocalDate.now()
+    var isEditable by remember { mutableStateOf(isToday || !viewModel.requiresAuth) }
+    var showUnlockDialog by remember { mutableStateOf(false) }
 
     val dayOfWeek = date.format(DateTimeFormatter.ofPattern("EEEE", Locale.GERMAN)).replaceFirstChar { it.uppercase() }
     val dateFormatted = date.format(DateTimeFormatter.ofPattern("dd. MMMM yyyy", Locale.GERMAN))
@@ -77,6 +84,20 @@ fun DayEntryPopup(date: LocalDate, viewModel: CalendarViewModel, onDismiss: () -
                         color = MaterialTheme.colorScheme.onSurfaceVariant)
                 }
                 Row {
+                    // Schloss-Button (nicht für heutigen Tag wenn kein PIN konfiguriert)
+                    if (viewModel.requiresAuth && !isToday) {
+                        IconButton(onClick = {
+                            if (isEditable) isEditable = false  // Wieder sperren
+                            else showUnlockDialog = true         // Entsperren mit PIN
+                        }) {
+                            Icon(
+                                if (isEditable) Icons.Default.LockOpen else Icons.Default.Lock,
+                                contentDescription = if (isEditable) "Sperren" else "Entsperren",
+                                tint = if (isEditable) MaterialTheme.colorScheme.primary
+                                       else MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+                    }
                     // Teilen-Button
                     if (pages.isNotEmpty()) {
                         IconButton(onClick = {
@@ -232,7 +253,8 @@ fun DayEntryPopup(date: LocalDate, viewModel: CalendarViewModel, onDismiss: () -
                     currentPage?.let { page ->
                         EntryEditorScreen(
                             page = page,
-                            onPageChanged = { viewModel.savePage(it) },
+                            onPageChanged = { if (isEditable) viewModel.savePage(it) },
+                            readOnly = !isEditable,
                             modifier = Modifier.fillMaxSize()
                         )
                     }
@@ -240,4 +262,85 @@ fun DayEntryPopup(date: LocalDate, viewModel: CalendarViewModel, onDismiss: () -
             }
         }
     }
+
+    // PIN-Dialog zum Entsperren alter Einträge
+    if (showUnlockDialog) {
+        UnlockDialog(
+            pinHash = viewModel.pinHash,
+            onSuccess = { isEditable = true; showUnlockDialog = false },
+            onDismiss = { showUnlockDialog = false }
+        )
+    }
+}
+
+/**
+ * Einfacher PIN-Dialog zum Entsperren alter Einträge.
+ * Zeigt 4 Punkte + Numpad, vergleicht gegen den gespeicherten PIN-Hash.
+ */
+@Composable
+private fun UnlockDialog(pinHash: String?, onSuccess: () -> Unit, onDismiss: () -> Unit) {
+    var pin by remember { mutableStateOf("") }
+    var error by remember { mutableStateOf(false) }
+    val maxPin = 4
+
+    fun verify() {
+        val hash = MessageDigest.getInstance("SHA-256")
+            .digest(pin.toByteArray())
+            .joinToString("") { "%02x".format(it) }
+        if (hash == pinHash) onSuccess()
+        else { error = true; pin = "" }
+    }
+
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text("PIN eingeben") },
+        text = {
+            Column(horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.spacedBy(16.dp)) {
+                Text("Gib deinen PIN ein um diesen alten Eintrag zu bearbeiten.",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant)
+                // PIN-Punkte
+                Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                    repeat(maxPin) { i ->
+                        Surface(
+                            shape = CircleShape,
+                            color = if (i < pin.length) MaterialTheme.colorScheme.primary
+                                    else MaterialTheme.colorScheme.surfaceVariant,
+                            modifier = Modifier.size(14.dp)
+                        ) {}
+                    }
+                }
+                if (error) Text("Falscher PIN",
+                    color = MaterialTheme.colorScheme.error,
+                    style = MaterialTheme.typography.labelSmall)
+                // Mini-Numpad
+                val keys = listOf("1","2","3","4","5","6","7","8","9","","0","⌫")
+                keys.chunked(3).forEach { row ->
+                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        row.forEach { key ->
+                            if (key.isEmpty()) Spacer(Modifier.size(48.dp))
+                            else TextButton(
+                                onClick = {
+                                    error = false
+                                    when (key) {
+                                        "⌫" -> if (pin.isNotEmpty()) pin = pin.dropLast(1)
+                                        else -> if (pin.length < maxPin) {
+                                            pin += key
+                                            if (pin.length == maxPin) verify()
+                                        }
+                                    }
+                                },
+                                modifier = Modifier.size(48.dp)
+                            ) { Text(key, fontSize = 18.sp) }
+                        }
+                    }
+                }
+            }
+        },
+        confirmButton = {},
+        dismissButton = {
+            TextButton(onClick = onDismiss) { Text("Abbrechen") }
+        }
+    )
 }
