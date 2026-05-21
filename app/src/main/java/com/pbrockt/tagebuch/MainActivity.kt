@@ -1,5 +1,9 @@
 package com.pbrockt.tagebuch
 
+import android.content.BroadcastReceiver
+import android.content.Context
+import android.content.Intent
+import android.content.IntentFilter
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -19,9 +23,33 @@ class MainActivity : ComponentActivity() {
     @Inject lateinit var appLockManager: AppLockManager
     private val mainViewModel: MainViewModel by viewModels()
 
+    // Sperrt sofort wenn Bildschirm ausgeschaltet wird
+    private val screenOffReceiver = object : BroadcastReceiver() {
+        override fun onReceive(context: Context, intent: Intent) {
+            if (intent.action == Intent.ACTION_SCREEN_OFF) {
+                appLockManager.lockApp()
+            }
+        }
+    }
+
+    override fun onStart() {
+        super.onStart()
+        registerReceiver(screenOffReceiver, IntentFilter(Intent.ACTION_SCREEN_OFF))
+    }
+
     override fun onStop() {
         super.onStop()
-        appLockManager.lockApp()
+        runCatching { unregisterReceiver(screenOffReceiver) }
+    }
+
+    override fun onPause() {
+        super.onPause()
+        appLockManager.onAppPaused()
+    }
+
+    override fun onResume() {
+        super.onResume()
+        appLockManager.onAppResumed()
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
