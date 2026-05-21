@@ -18,8 +18,18 @@ import kotlin.math.PI
 import kotlin.math.cos
 import kotlin.math.sin
 
-data class AccentColors(val light: androidx.compose.material3.ColorScheme, val dark: androidx.compose.material3.ColorScheme)
+/**
+ * Farbschemas für alle sechs Akzentfarben (je eine helle und dunkle Variante).
+ *
+ * Material Design 3 verwendet ein System von zusammenhängenden Farbrollen
+ * (primary, secondary, tertiary) die aufeinander abgestimmt sind.
+ */
+data class AccentColors(
+    val light: androidx.compose.material3.ColorScheme,
+    val dark: androidx.compose.material3.ColorScheme
+)
 
+/** Alle verfügbaren Akzentfarben — zugeordnet zu ihren Farbschemas */
 val accentMap: Map<String, AccentColors> = mapOf(
     SecurePrefs.ACCENT_PURPLE to AccentColors(
         light = lightColorScheme(primary = androidx.compose.ui.graphics.Color(0xFF6650A4), secondary = androidx.compose.ui.graphics.Color(0xFF625B71), tertiary = androidx.compose.ui.graphics.Color(0xFF7D5260)),
@@ -47,6 +57,21 @@ val accentMap: Map<String, AccentColors> = mapOf(
     )
 )
 
+/**
+ * Das Haupt-Theme der App.
+ *
+ * Dieses Composable wrappt die gesamte App und stellt Farben, Typografie
+ * und andere Design-Token für alle Kind-Composables bereit.
+ *
+ * Wie funktioniert Theming in Compose?
+ * MaterialTheme stellt Werte über "CompositionLocals" bereit — das sind
+ * implizite Parameter die durch den Composable-Baum nach unten fließen.
+ * MaterialTheme.colorScheme.primary ist überall in der App verfügbar.
+ *
+ * @param themeChoice   "system", "light" oder "dark"
+ * @param accentColor   Welche Akzentfarbe verwendet wird
+ * @param fontChoice    Welche Schriftart verwendet wird
+ */
 @Composable
 fun TagebuchTheme(
     themeChoice: String = SecurePrefs.THEME_SYSTEM,
@@ -54,16 +79,22 @@ fun TagebuchTheme(
     fontChoice: String = SecurePrefs.FONT_DEFAULT,
     content: @Composable () -> Unit
 ) {
+    // Dark Mode bestimmen: explizite Einstellung oder System-Voreinstellung
     val darkTheme = when (themeChoice) {
         SecurePrefs.THEME_DARK -> true
         SecurePrefs.THEME_LIGHT -> false
-        else -> isSystemInDarkTheme()
+        else -> isSystemInDarkTheme()  // Folgt der System-Einstellung
     }
 
+    // Farb-Schema für die gewählte Akzentfarbe und den Light/Dark-Modus
     val colors = accentMap[accentColor] ?: accentMap[SecurePrefs.ACCENT_PURPLE]!!
     val colorScheme = if (darkTheme) colors.dark else colors.light
+
+    // Schrift-basierte Typografie laden
     val typography = getTypography(fontChoice)
 
+    // SideEffect: Code der nach der Recomposition ausgeführt wird
+    // Hier: Status-Leiste auf hellen/dunklen Stil setzen
     val view = LocalView.current
     if (!view.isInEditMode) {
         SideEffect {
@@ -79,27 +110,39 @@ fun TagebuchTheme(
     )
 }
 
+/**
+ * Zeichnet ein dekoratives Blumen-Muster als Hintergrund.
+ *
+ * Canvas: Compose-Zeichenfläche für freie Grafiken.
+ * Verwendet Trigonometrie (cos/sin) um die 5 Blütenblätter
+ * jeder Blume kreisförmig anzuordnen.
+ * Die sehr niedrige Opacity (7-12%) macht es subtil und dezent.
+ */
 @Composable
 fun FloralBackground(modifier: Modifier = Modifier) {
     val petalColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.07f)
     val centerColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.12f)
 
     Canvas(modifier = modifier.fillMaxSize()) {
-        val spacing = 72f
-        val petalRadius = 9f
-        val petalDist = 13f
-        val centerRadius = 4f
+        val spacing = 72f      // Abstand zwischen Blumen in Pixeln
+        val petalRadius = 9f   // Größe jedes Blütenblatts
+        val petalDist = 13f    // Abstand des Blütenblatts vom Zentrum
+        val centerRadius = 4f  // Größe des Blütenzentrums
 
         var row = 0
         var y = spacing / 2f
         while (y < size.height + spacing) {
+            // Jede zweite Reihe um eine halbe Blume versetzt → Waben-Muster
             val xOffset = if (row % 2 == 0) spacing / 2f else 0f
             var x = xOffset
             while (x < size.width + spacing) {
+                // 5 Blütenblätter mit je 72° Abstand
                 for (i in 0 until 5) {
                     val angle = (i * 72.0 - 90.0) * PI / 180.0
-                    drawCircle(petalColor, petalRadius,
-                        Offset(x + cos(angle).toFloat() * petalDist, y + sin(angle).toFloat() * petalDist))
+                    drawCircle(
+                        petalColor, petalRadius,
+                        Offset(x + cos(angle).toFloat() * petalDist, y + sin(angle).toFloat() * petalDist)
+                    )
                 }
                 drawCircle(centerColor, centerRadius, Offset(x, y))
                 x += spacing
