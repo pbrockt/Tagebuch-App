@@ -17,7 +17,7 @@
 
 **Eine private, verschlüsselte Tagebuch-App für Android 15+**
 
-> 🤖 *Diese App wurde vollständig durch künstliche Intelligenz ([Claude](https://claude.ai) von Anthropic) entwickelt — von der Architektur über den Code bis hin zu diesem README.*
+> 🤖 *Diese App wurde vollständig durch künstliche Intelligenz ([Claude](https://claude.ai) von Anthropic) entwickelt.*
 
 [![GitHub Release](https://img.shields.io/github/v/release/pbrockt/Tagebuch-App?label=Release&color=purple)](https://github.com/pbrockt/Tagebuch-App/releases/latest)
 [![Build APK](https://github.com/pbrockt/Tagebuch-App/actions/workflows/build.yml/badge.svg)](https://github.com/pbrockt/Tagebuch-App/actions/workflows/build.yml)
@@ -28,112 +28,88 @@
 
 ---
 
-## 📦 Version 0.1 — Was diese Version bietet
+## 📦 Aktuelle Version: 0.2a
 
-Dies ist die erste vollständige Veröffentlichung der Tagebuch-App. Alle unten genannten Features sind in **Version 0.1** enthalten und funktionsfähig.
+---
+
+## ✨ Features
 
 ### 🔒 Sicherheit & Datenschutz
-
-Die App legt höchsten Wert auf Privatsphäre. Alle Daten bleiben auf dem Gerät — kein Account, kein Cloud-Zwang, keine Telemetrie.
-
-- **4-stelliger PIN** schützt den Zugang zur App
-- **Automatische Sperre** beim Verlassen der App — beim Zurückkehren ist sofort der PIN-Screen aktiv
-- **PIN-Versuch-Limit:** Nach 5 falschen Eingaben wird die App 30 Sekunden gesperrt (mit Countdown-Anzeige)
-- **Haptic Feedback** bei jeder PIN-Ziffer (spürbares Tipp-Gefühl)
-- **AES-256-GCM Verschlüsselung** — die Datenbank ist durch den Android Keystore geschützt
-- Keine Backups, kein Cloud-Upload ohne explizite Konfiguration
+- **4-stelliger PIN** mit automatischer Sperre beim Verlassen der App
+- **PIN-Versuch-Limit:** 5 Fehlversuche → 30 Sekunden Sperre mit Countdown
+- **Animierte PIN-Dots:** Bounce beim Eingeben, Shake-Animation bei falschem PIN
+- **Haptic Feedback** bei jeder PIN-Ziffer
+- **AES-256-GCM Verschlüsselung** — Datenbank durch Android Keystore geschützt
+- Kein Cloud-Zwang, kein Account, keine Telemetrie
 
 ### 📅 Kalender
-
-Der Hauptbildschirm zeigt eine Monatsübersicht.
-
-- Monatsansicht mit Vor-/Zurück-Navigation
-- **Einträge-Zähler** im Header (z. B. „Mai · 7 Einträge")
-- Tage mit Einträgen haben einen farbigen Punkt
-- **Stimmungs-Farbe** pro Tag: Grün (super) → Gelb (okay) → Rot (schrecklich)
-- Kleines **Wetter-Icon** auf dem jeweiligen Tag
-- Versionsnummer rechts unten
+- Monatsansicht mit Vor-/Zurück-Navigation und Slide-Animation
+- **Einträge-Zähler** im Monats-Header
+- **Stimmungs-Emoji** unter der Tageszahl: 😁 😊 😐 😔 😢
+- **Wetter-Emoji** über der Tageszahl: ☀ ☁ 🌧 ❄ ⛈
+- **1–3 Punkte** je nach Anzahl der Seiten pro Tag
+- **🎈 Geburtstags-Icon** für Kontakt-Geburtstage
+- **👑 Krone** auf dem eigenen Geburtstag
+- Gradient-Hintergrund in der gewählten Akzentfarbe
 
 ### ✏️ Eintrags-Editor
-
-Klick auf einen Tag öffnet ein großes Popup (~90 % Bildschirmhöhe).
-
-- **Stimmung wählen:** 😁 Super / 😊 Gut / 😐 Ok / 😔 Schlecht / 😢 Schrecklich
-- **Wetter wählen:** ☀️ Sonnig / ☁️ Bewölkt / 🌧️ Regen / ❄️ Schnee / ⛈️ Gewitter
-- **Mehrere Seiten pro Tag** — Tabs zum Wechseln, neue Seite hinzufügen, Seite löschen
-- **Freitextfeld** — schreibe deinen Tagebucheintrag
-- **Emoji-Canvas** — wähle Emojis aus der Leiste, platziere sie frei auf der Seite, verschiebe und skaliere sie per Pinch
-- **Bilder einfügen** — öffne die Galerie, wähle ein Foto, platziere es frei auf der Seite
+- Mehrere **Seiten pro Tag** (Tabs)
+- **Rich-Text-Formatierung:** Fett, Kursiv, 6 Textfarben, Formatierung löschen
+- Stimmungs- und Wetter-Auswahl direkt im Popup
+- Wochentag groß als Popup-Header
 
 ### 📊 Statistiken
-
-Ein eigener Statistik-Screen zeigt Übersichten über deine Schreibgewohnheiten.
-
-- 🔥 **Aktueller Streak** — wie viele Tage in Folge du geschrieben hast
-- 🏆 **Längster Streak** aller Zeiten
-- ✍️ **Gesamtzahl Wörter** über alle Einträge
-- 📅 **Gesamtzahl Tage** mit Einträgen
-- **Monats-Balkendiagramm** — Einträge der letzten 6 Monate auf einen Blick
-- **Stimmungsverteilung** — wie oft war welche Stimmung die häufigste
+- 🔥 Aktueller Streak & 🏆 Längster Streak
+- ✍️ Gesamtanzahl Wörter & 📅 Tage mit Einträgen
+- Monats-Balkendiagramm (letzte 6 Monate) mit Gradient
+- Stimmungsverteilung als Fortschrittsbalken
 
 ### 🔍 Suche
-
-- Volltext-Suche über alle Einträge (ab 2 Zeichen Eingabe)
-- Ergebnisse zeigen Datum und Textvorschau
-- Debounced — sucht automatisch beim Tippen
+- Volltext-Suche über alle Einträge (ab 2 Zeichen, Live-Suche)
 
 ### 🔔 Erinnerungen
-
-- Tägliche Push-Benachrichtigung zur selbst gewählten Uhrzeit
-- „Hast du deinen Tag schon festgehalten? ✏️"
-- In Einstellungen aktivierbar/deaktivierbar + Uhrzeit konfigurierbar
+- Tägliche Push-Benachrichtigung zur konfigurierbaren Uhrzeit
 
 ### 📄 PDF-Export
-
-- Aktuellen Monat als PDF exportieren
-- Enthält: alle Einträge mit Datum, Stimmung, Wetter und Seiteninhalt
-- Teilen über beliebige App (WhatsApp, E-Mail, Signal, etc.)
+- Aktuellen Monat exportieren & teilen (WhatsApp, E-Mail, etc.)
 
 ### ☁️ WebDAV-Synchronisation
-
-- Sync mit eigenem WebDAV-Server (Nextcloud, ownCloud, etc.)
-- **Clientseitige Verschlüsselung** — der Server sieht nur verschlüsselte Dateien
-- Schlüssel wird aus deiner Passphrase via PBKDF2 abgeleitet — ohne Passphrase keine Entschlüsselung
-- Bidirektional: Geräte- und Serveränderungen werden zusammengeführt
-- **Offline-first** — App funktioniert ohne Verbindung, Sync erfolgt beim nächsten Start
+- Sync mit eigenem Server (Nextcloud, ownCloud, etc.)
+- Clientseitige Verschlüsselung (PBKDF2 + AES-GCM) — Server sieht nur verschlüsselte Daten
+- Verbindungs-Test-Button in den Einstellungen
+- Offline-first — funktioniert ohne Verbindung
 
 ### 🎨 Design & Anpassung
-
-- **6 Akzentfarben** wählbar: Lila, Blau, Grün, Orange, Rosa, Türkis
+- **4 Schriftarten:** Standard (Roboto) · Serif · Schreibmaschine · Kursiv
+- **6 Akzentfarben:** Lila, Blau, Grün, Orange, Rosa, Türkis
 - **Light / Dark / Systemstandard** Theme
 - Material Design 3
-- Florale Hintergrund-Dekoration auf dem PIN-Screen
 
 ### ⚙️ Einstellungen
+- **Versions-Check** ganz oben — prüft automatisch ob eine neue Version auf GitHub verfügbar ist
+- PIN-Verwaltung, Schriftart, Farbthema, Kalender-Ansicht (Stimmung / Wetter / Beides)
+- Tägliche Erinnerung konfigurieren
+- WebDAV-Server einrichten & testen
+- **Geburtstage:** Kontakte-Berechtigung erteilen + eigenen Geburtstag (TT.MM) eintragen
+- Berechtigungen direkt in der App verwalten (Benachrichtigungen, Kontakte)
 
-Alle relevanten Optionen sind in einem Einstellungs-Screen zusammengefasst:
-
-- PIN ändern / entfernen
-- Akzentfarbe & Theme wählen
-- Erinnerungszeit konfigurieren
-- WebDAV-Server einrichten
-- **Berechtigungen direkt in der App** verwalten (Benachrichtigungen, Fotos)
+### 🗂️ Navigation
+- Bottom Navigation Bar: 🏠 Kalender · 🔍 Suche · 📊 Statistiken · ⚙️ Einstellungen
 
 ---
 
 ## 📱 Installation
 
 ### Voraussetzungen
-- Android 15 oder höher
-- Ca. 100 MB freier Speicherplatz
+- Android 15 (API 35) oder höher
 
 ### Schritte
 1. **[Neueste Version herunterladen →](https://github.com/pbrockt/Tagebuch-App/releases/latest)**
-2. `Tagebuch-App-v0.1.apk` auf das Android-Gerät übertragen (z. B. per USB oder Cloud)
-3. Auf dem Gerät: **Einstellungen → Sicherheit → Unbekannte Quellen erlauben**
-4. APK antippen → Installieren
+2. APK auf das Gerät übertragen
+3. **Einstellungen → Sicherheit → Unbekannte Quellen** erlauben
+4. APK installieren
 
-> **Hinweis bei Updates:** Beim ersten Update von einer älteren Version muss die alte App ggf. zuerst deinstalliert werden. Danach sind direkte Updates möglich.
+> Direktes Update über ältere Versionen möglich (solange versionCode größer ist).
 
 ---
 
@@ -146,52 +122,70 @@ Alle relevanten Optionen sind in einem Einstellungs-Screen zusammengefasst:
 | Architektur | MVVM + Repository Pattern |
 | Datenbank | Room + SQLCipher (AES-256) |
 | Dependency Injection | Hilt |
-| Netzwerk | OkHttp (WebDAV) |
+| Netzwerk | OkHttp (WebDAV + Update-Check) |
 | Bilder laden | Coil |
 | Hintergrundaufgaben | WorkManager |
 | Verschlüsselung | Android Keystore + AES-GCM + PBKDF2 |
-| Build-System | Gradle 8.9 + KSP |
+| Build | Gradle 8.9 + KSP + R8 |
 | CI/CD | GitHub Actions |
 
 ---
 
 ## 🤖 KI-Entwicklung
 
-Diese App wurde **vollständig von [Claude](https://claude.ai) (Anthropic)** entwickelt — einem großen Sprachmodell der Firma Anthropic.
-
-Der gesamte Entwicklungsprozess lief in einer einzigen Konversation:
-
-1. Anforderungen aus `ToDo.txt` analysiert
-2. Architektur entworfen (MVVM, Room, Hilt, Compose)
-3. ~40 Kotlin-Quelldateien geschrieben (~4.000 Zeilen Code)
-4. Build-Fehler aus GitHub Actions Logs analysiert und behoben
-5. Features iterativ auf Nutzerfeedback erweitert
+Diese App wurde **vollständig von [Claude](https://claude.ai) (Anthropic)** entwickelt.
 
 | | |
 |---|---|
 | **Menschlicher Aufwand** | Anforderungen formulieren + Feedback geben |
-| **KI-Aufwand** | Architektur, Code, Debugging, CI/CD, README, Release |
+| **KI-Aufwand** | Architektur, Code, Debugging, CI/CD, README, Releases |
 
 ---
 
 ## 📋 Changelog
 
+### v0.2a
+- Fix: Bottom-NavigationBar überdeckte Inhalte (NavigationBar-Padding)
+- Neu: Versions-Check in Einstellungen (prüft GitHub Releases API)
+
+### v0.2 — Visuelles Redesign + Geburtstage
+- 4 wählbare Schriftarten
+- Gradient-Hintergrund im Kalender, Slide-Animation beim Monatswechsel
+- Geburtstage aus Kontakten (🎈), eigener Geburtstag (👑)
+- Animierte PIN-Dots (Bounce + Shake)
+- Bottom Navigation Bar
+- Gradient-Statistik-Karten
+- 1–3 Dots je nach Seitenanzahl
+- Rich-Text-Formatierung im Editor (Fett, Kursiv, Farben)
+- Foto-Berechtigung entfernt (Feature nicht aktiv)
+
+### v0.1e
+- Fix: Stimmungs-Emoji als sichtbares Icon im Kalender (statt unsichtbarer Hintergrundfarbe)
+
+### v0.1d
+- Fix: Kalender-Ansicht (Stimmung/Wetter) wurde nach Einstellungsänderung nicht aktualisiert
+
+### v0.1c
+- Fix: `@Serializable` fehlte auf `DiaryPage` + `DiaryDay` → WebDAV-Sync schlug fehl
+- Fix: ProGuard-Regeln für kotlinx.serialization
+
+### v0.1b
+- Fix: App-Crash bei WebDAV (CancellationException, Response-Leaks, URL-Parsing)
+- Neu: „Verbindung testen"-Button in WebDAV-Einstellungen
+
+### v0.1a
+- Rich-Text-Editor (Canvas entfernt, Fett/Kursiv/Farbe)
+- Stimmung/Wetter-Labels bündig ausgerichtet
+- Kalender-Ansicht umschaltbar (Stimmung / Wetter / Beides) in Einstellungen
+- versionCode = 2
+
 ### v0.1 — Erste Veröffentlichung
-**Kern-Features:**
-- Kalenderansicht mit Monatsnavigation und Einträge-Zähler
-- Tagebucheditor mit freiem Emoji/Bild-Canvas
-- Stimmungs- und Wetter-Tracking pro Tag
-- 4-stelliger PIN mit automatischer Sperre und Versuch-Limit
-- Volltext-Suche, Statistiken, PDF-Export
-- WebDAV-Sync mit clientseitiger Verschlüsselung
-- 6 Farbthemen + Light/Dark Mode
-- Tägliche Erinnerungs-Benachrichtigung
-- Berechtigungsverwaltung direkt in der App
+- Kalender, Editor, Stimmung & Wetter, PIN-Schutz, WebDAV-Sync, Statistiken, PDF-Export, Suche
 
 ---
 
 <div align="center">
 
-*Version 0.1 · erstellt mit ❤️ und 🤖 von [Claude](https://claude.ai) (Anthropic)*
+*Version 0.2a · erstellt mit ❤️ und 🤖 von [Claude](https://claude.ai) (Anthropic)*
 
 </div>
