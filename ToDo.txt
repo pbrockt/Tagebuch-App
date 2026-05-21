@@ -1,172 +1,94 @@
 # App: Tagebuch-App für Android 15+
-# Status: Version 0.1 veröffentlicht
-# Legende: ✅ Umgesetzt | ⚠️ Teilweise | ❌ Nicht umgesetzt | 💡 Neue Idee
+# Status: Version 0.3c veröffentlicht
+# Legende: ✅ Umgesetzt | ⚠️ Teilweise | ❌ Nicht umgesetzt | 💡 Idee / Backlog
 
 ---
 
-## 1. Grundidee
-✅ Privatsphäreorientierte Tagebuch-/Journal-App für Android 15+
-✅ Fokus: Kalender, verschlüsselte Datenspeicherung, WebDAV-Synchronisation
-✅ Privates GitHub-Repository
+## Kern-Features (Original-Anforderungen)
 
-## 2. Zielplattform
-✅ Android 15+ (API 35), Kotlin + Jetpack Compose
-❌ Kompatibilität mit älteren Android-Versionen (nicht geplant)
-
-## 3. Hauptbildschirm: Kalender
-✅ Monatskalender (Gitterform) mit Navigation
-✅ Klick auf Tag → Popup (90 % Bildschirmhöhe)
-✅ Hinweis auf vorhandene Einträge (Punkt-Indikator)
-✅ Mehrere Seiten pro Tag (Tabs im Popup)
-✅ Einträge-Zähler im Monats-Header
-✅ Stimmungs-Farbe pro Tag (grün → rot)
-✅ Wetter-Icon pro Tag
-💡 Geburtstage aus Kontakten im Kalender anzeigen (READ_CONTACTS-Berechtigung)
-💡 Einstellung: Kalender-Icon-Ansicht umschalten (Stimmung ODER Wetter anzeigen)
-
-## 4. Eintrags-Editor im Popup
-✅ Texteingabe per Tastatur
-✅ Emojis einfügbar (aus Picker-Leiste)
-✅ Bilder aus Galerie einfügbar (Bild-Picker)
-✅ Emojis und Bilder frei auf Canvas platzierbar (Drag & Drop)
-✅ Emojis und Bilder skalierbar (Pinch-to-Zoom)
-⚠️ Rotation von Medien (Modell vorhanden, UI noch nicht vollständig)
-⚠️ Einfache Textformatierung (fett, kursiv) — noch nicht implementiert
-
-## 5. Popup-UI
-✅ Popup ~90 % Bildschirmhöhe (ModalBottomSheet)
-✅ „X"-Button zum Schließen
-✅ Stimmungs-Auswahl (5 Emojis) im Popup-Header
-✅ Wetter-Auswahl (5 Icons) im Popup-Header
+✅ Privatsphäreorientierte Tagebuch-App für Android 15+
+✅ Kalender, verschlüsselte Datenspeicherung, WebDAV-Synchronisation
+✅ Monatskalender mit Navigation, Popup (fullscreen), Seiten-Tabs
+✅ Texteingabe mit Rich-Text (Fett, Kursiv, 6 Farben)
+✅ Stimmungs-Auswahl (5 Stufen) + Wetter-Auswahl (5 Icons) im Popup
 ✅ Neue Seite hinzufügen / Seite löschen
+✅ PIN-Schutz (4-stellig, Versuch-Limit, Haptic, Bounce/Shake-Animation)
+✅ App schließt sich beim Verlassen komplett (finishAndRemoveTask)
+✅ WebDAV: bidirektional, clientseitig verschlüsselt, offline-first
+✅ Einstellungen: PIN, Theme, Farben, Schriftart, WebDAV, Erinnerungen
+✅ Android Keystore + AES-256 Verschlüsselung
 
-## 6. Authentifizierung
-✅ 4-stelliger PIN-Schutz
-✅ App sperrt sich sofort beim Verlassen (onStop)
-✅ PIN-Abfrage beim Zurückkehren zur App
-✅ PIN-Versuch-Limit: 5 Fehlversuche → 30 Sekunden Sperre
-✅ Haptic Feedback bei PIN-Eingabe
-✅ Countdown-Anzeige bei Sperre
-❌ Fingerabdruck-Entsperrung (entfernt — Stabilitätsprobleme)
+---
 
-## 7. Einstellungs-Bildschirm
-✅ PIN festlegen / ändern / entfernen
-✅ Akzentfarbe wählen (6 Farben: Lila, Blau, Grün, Orange, Rosa, Türkis)
-✅ Light / Dark / Systemstandard Theme
-✅ WebDAV-Konfiguration (URL, Benutzername, Passwort, Verschlüsselungs-Passphrase)
-✅ Sync ein/aus + manueller Sync-Button
-✅ Tägliche Erinnerung mit konfigurierbarer Uhrzeit
-✅ Berechtigungen direkt in der App verwalten (Benachrichtigungen, Fotos)
-💡 Kalender-Icon-Ansicht: Stimmung ODER Wetter als Tag-Icon anzeigen
-💡 Perioden-Tracking aktivieren / deaktivieren
+## Umgesetzte Extras
 
-## 8. WebDAV-Synchronisation
-✅ Bidirektionale Sync
-✅ Clientseitige Verschlüsselung (PBKDF2 + AES-GCM)
-✅ Offline-first (Tagebuch ohne Verbindung nutzbar)
-✅ Ausstehende Syncs werden automatisch durchgeführt
-✅ Konflikte: neuerer Zeitstempel gewinnt
-⚠️ Background-Sync bei WLAN (WorkManager vorhanden, aber nicht vollständig getestet)
-
-## 9. Datenmodell
-✅ DiaryDay (Datum, Stimmung, Wetter)
-✅ DiaryPage (Text, Medien-Canvas als JSON)
-✅ PageMedia (Position, Größe, Rotation pro Element)
-✅ AES-256-SQLCipher für lokale DB
-✅ Serialisierung via kotlinx.serialization
-
-## 10. Teilen von Seiten
-⚠️ PDF-Export des aktuellen Monats (teilen via Intent)
-❌ Screenshot einer einzelnen Seite als Bild teilen
-❌ „Öffentlichere" Version (verfremdet) noch nicht implementiert
-
-## 11. Technische Anforderungen
-✅ Android 15+, Kotlin, Jetpack Compose
-✅ MVVM + Repository-Pattern
-✅ Room + SQLCipher
-✅ Offline-first
-✅ Hilt Dependency Injection
-
-## 12. GitHub-Repo
-✅ Privates Repository: github.com/pbrockt/Tagebuch-App
-✅ Automatischer CI/CD-Build via GitHub Actions
-✅ Konsistenter Signing-Keystore (gecacht im CI)
-
-## 13. Umgesetzte Extras (nicht in Original-ToDo)
-✅ Volltext-Suche über alle Einträge
-✅ Statistik-Screen (Streak, Wörter, Monats-Chart, Stimmungsverteilung)
-✅ Stimmungs-Tracking mit 5 Stufen
-✅ Wetter-Tracking mit 5 Optionen
+✅ Volltext-Suche (lesbarer Text, Klick öffnet Eintrag direkt)
+✅ Statistiken (Streak, Wörter, Monats-Chart, Stimmungsverteilung)
+✅ PDF-Export des aktuellen Monats
+✅ 6 Akzentfarben + 4 Schriftarten + Light/Dark/System Theme
+✅ Bottom Navigation (Kalender · Suche · Statistiken · Einstellungen)
+✅ Slide-Animation beim Monatswechsel
+✅ Monats-Zusammenfassung: „12 Einträge · 😊 meist gut · 🔥 5 Tage Streak"
+✅ Tages-Motivationsspruch unter dem Kalender (105 Sprüche offline)
+✅ Streak-Belohnungs-Konfetti bei 7 🌟 / 30 🏅 / 100 🏆 Tagen
+✅ Geburtstage aus Kontakten (🎈 / 👑 im Kalender)
+✅ Eigener Geburtstag (TT.MM → 👑 im Kalender)
+✅ Perioden-Tracking (🩸 Start/Aktiv/🔴 Stark/Ende, in Einstellungen deaktivierbar)
+✅ Seitenfarbe pro Seite wählbar (8 Farben)
+✅ „An diesem Tag vor X Jahren" — Banner im Popup bei alten Einträgen
+✅ 🔒 Schloss für alte Einträge — PIN nötig zum Bearbeiten
+✅ Kalender-Anzeige umschaltbar: Stimmung / Wetter / Beides
+✅ Versions-Check in Einstellungen (prüft GitHub Releases)
+✅ Quellcode vollständig auf Deutsch kommentiert
 ✅ Tägliche Erinnerungs-Benachrichtigung (WorkManager)
-✅ PDF-Export mit Stimmung & Wetter
-✅ 6 Farbthemen (Akzentfarben)
+✅ Berechtigungen direkt in der App verwalten
 ✅ Florale Hintergrund-Dekoration (PIN-Screen)
-✅ Versionsnummer im Kalender (rechts unten)
-✅ README.md mit App-Beschreibung, Icon und Changelog
+✅ App nicht in Recents sichtbar (finishAndRemoveTask)
 
-## 14. Neue Ideen / Backlog
-💡 Geburtstage aus Kontakten im Kalender anzeigen
-   - READ_CONTACTS-Berechtigung anfordern
-   - Geburtstage als Icon/Label auf Kalender-Tagen anzeigen
-   - Opt-in, da private Daten
-💡 Perioden-Tracking
-   - Ähnlich wie Stimmung: optionales Tracking-Feld pro Tag
-   - In Einstellungen aktivierbar/deaktivierbar (Privacy)
-   - Kalender-Anzeige mit eigenem Icon/Farbe
-   - Zyklusberechnung (nächste Periode schätzen)
-💡 Kalender-Icon-Ansicht umschalten (Einstellungs-Toggle)
-   - Wählen: Wetter-Icon ODER Stimmungs-Farbe auf Kalender-Tagen
-   - Oder: beides kombiniert (Wetter + Stimmungs-Hintergrundfarbe)
-💡 Fingerabdruck-Auth erneut versuchen (stabiler implementieren)
-💡 Fett / Kursiv Formatierung im Texteditor
+---
+
+## Teilweise umgesetzt
+
+⚠️ Bilder/Emojis im Editor (Canvas-Modus entfernt da instabil — Texteditor ist Hauptfunktion)
+⚠️ Background-Sync bei WLAN (WorkManager vorhanden, nicht vollständig getestet)
+⚠️ PDF-Export: Monat teilbar, Einzelseite als Bild noch nicht
+
+---
+
+## Nicht umgesetzt
+
+❌ Fingerabdruck-Entsperrung (entfernt — Stabilitätsprobleme auf verschiedenen Geräten)
+❌ Kompatibilität mit Android < 15 (nicht geplant)
+❌ Screenshot einzelner Seite als Bild teilen
+
+---
+
+## Backlog / Neue Ideen
+
+💡 Zyklusberechnung beim Perioden-Tracking
+   - Nächste Periode automatisch schätzen anhand bisheriger Einträge
+   - Anzeige im Kalender (kleines Icon an erwartetem Datum)
+
+💡 Fingerabdruck-Auth (stabiler Versuch)
+   - Auf neueren Android-Versionen über BiometricPrompt ohne FragmentActivity
+   - Als optionale Alternative zum PIN
+
 💡 Schriftgröße einstellbar
-💡 Seite als Bild teilen (Screenshot einer Canvas-Seite)
-💡 „An diesem Tag vor X Jahren" — alte Einträge beim Öffnen eines Datums zeigen
-💡 PIN-Versuch-Limit konfigurierbar (Anzahl + Wartezeit)
-💡 Seitenfarbe pro Seite wählbar (8 Hintergrundfarben)
-💡 Streak-Belohnungs-Screen
-   - Nach 7 / 30 / 100 Tagen in Folge eine Belohnungs-Animation zeigen
-   - Konfetti-Animation mit Compose (z.B. kotlinx-coroutines + Canvas-Partikel)
-   - Glückwunsch-Text: „7 Tage in Folge! Weiter so! 🎉"
-   - Verschiedene Stufen: 🌟 7 Tage · 🏅 30 Tage · 🏆 100 Tage
-   - Einmal pro erreichter Stufe anzeigen (nicht bei jedem Start)
-   - Optional: Benachrichtigung wenn neuer Streak-Rekord erreicht
-💡 Tages-Motivationsspruch im Kalender anzeigen
-   - Jeden Tag automatisch ein anderer Spruch unter dem Kalender-Grid
-   - 105 Sprüche offline gespeichert (siehe Motivationssprüche.txt)
-   - Auswahl per Tagesnummer (LocalDate.dayOfYear % anzahl) — kein Zufall, kein Internet
-   - Themen: Tagebuch & Schreiben, Leben, Gefühle, Mut, Dankbarkeit, Für junge Menschen
-   - Dezente Darstellung: kursiv, leicht transparent, mit Anführungszeichen
-   - Optional: Spruch antippen → ganzen Spruch in großer Ansicht zeigen
-💡 Monats-Zusammenfassung über dem Kalender (statt Einträge-Zähler im Header)
-   - Einträge-Zähler aus dem Monats-Header entfernen
-   - Stattdessen eine kompakte Zusammenfassungs-Karte direkt ÜBER dem Kalender-Grid:
-     Beispiel: „12 Einträge · 😊 meist gute Laune · 🔥 5 Tage Streak"
-   - Automatisch für den angezeigten Monat berechnet
-   - Häufigste Stimmung aus allen DiaryDay-Einträgen des Monats ermitteln
-   - Aktuellen Streak aus StatsViewModel / DiaryRepository übernehmen
-   - Dezente Darstellung: kleine Karte, Akzentfarbe, ein-zeilig
-   - Wechselt automatisch beim Monatswechsel
+   - Schieberegler in Einstellungen (klein / normal / groß)
 
-💡 Privatsphäre verbessern — PIN sofort bei App-Wechsel oder Bildschirm-Aus
-   - PROBLEM: Aktuell wird onStop() genutzt, aber onStop() feuert NICHT wenn nur
-     der Bildschirm ausgeschaltet wird (nur onPause() wird aufgerufen).
-     Ergebnis: Bildschirm aus → an → App offen ohne PIN-Abfrage.
-   - LÖSUNG A (empfohlen): onPause() mit konfigurierbarem Timeout nutzen:
-     * Zeitstempel beim onPause() speichern
-     * In onResume() prüfen: wenn mehr als X Sekunden vergangen → PIN verlangen
-     * Konfigurierbare Sperrverzögerung in Einstellungen: Sofort / 30 Sek / 1 Min / 5 Min
-   - LÖSUNG B (einfacher): onPause() direkt sperren (ohne Timeout)
-     → Kann nervig sein bei Benachrichtigungen/Dialogen über der App
-   - LÖSUNG C: ProcessLifecycleOwner beobachten (erkennt echten App-Hintergrund
-     zuverlässiger als Activity-Lifecycle)
-   - Zusätzlich: Screen-Off über BroadcastReceiver (ACTION_SCREEN_OFF) abfangen
-     und sofort sperren, unabhängig vom Activity-Lifecycle
-   - Empfehlung: Kombination aus onPause() + Timeout (konfigurierbar, Standard: sofort)
-💡 Streak-Zähler sichtbar im Kalender-Screen
-   - Aktuellen Streak prominent im Hauptbildschirm anzeigen (nicht nur in Statistiken)
-   - Mögliche Position: neben/unter der Monats-Zusammenfassung oder in der TopBar
-   - Beispiel: 🔥 5 — klein, aber sichtbar
-   - Wenn Streak = 0: neutral (kein Feuer-Emoji) oder motivierender Text „Fang heute an!"
-   - Wenn neuer Rekord: kurze Hervorhebung (z.B. goldene Farbe)
-   - Streak-Berechnung aus DiaryRepository (schon in StatsViewModel vorhanden → wiederverwenden)
+💡 Seite als Bild teilen
+   - Screenshot der aktuellen Seite als PNG exportieren
+   - Teilen via Intent (WhatsApp, Signal, etc.)
+
+💡 PIN-Limit konfigurierbar
+   - Anzahl Fehlversuche und Wartezeit in Einstellungen anpassbar
+
+💡 Suchfilter nach Stimmung
+   - Alle „😁 Super"-Tage auf einen Blick anzeigen
+
+💡 Widget (Home-Screen)
+   - Kleines Widget mit Schnell-Eintrag-Button und aktuellem Datum
+
+💡 Sicherungs-Export
+   - Alle Daten als verschlüsselte ZIP exportieren/importieren
+   - Für Gerätewechsel oder manuelle Sicherung
